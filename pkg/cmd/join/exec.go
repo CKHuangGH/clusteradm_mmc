@@ -79,7 +79,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
 	agentNamespace := AgentNamespacePrefix + "agent"
-	McKlusterletName := "klusterlet-" + o.clusterName
+	McKlusterletName := "klusterlet-" + o.clusterName + helpers.RandStringRunes_az09(6)
 	McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 
 	o.values = Values{
