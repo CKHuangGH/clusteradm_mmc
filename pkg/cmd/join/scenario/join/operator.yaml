@@ -2,12 +2,12 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: klusterlet
-  namespace: open-cluster-management
+  name: {{ .McKlusterletName }}
+  namespace: {{ .McNamespace }}
   labels:
     app: klusterlet
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: klusterlet
@@ -39,9 +39,9 @@ spec:
                   operator: In
                   values:
                   - klusterlet
-      serviceAccountName: klusterlet
+      serviceAccountName: {{ .McKlusterletName }}
       containers:
-      - name: klusterlet
+      - name: {{ .McKlusterletName }}
         image: {{ .Registry }}/registration-operator:{{ .BundleVersion.RegistrationImageVersion }}
         args:
           - "/registration-operator"

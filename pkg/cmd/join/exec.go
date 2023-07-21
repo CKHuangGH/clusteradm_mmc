@@ -79,6 +79,8 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
 	agentNamespace := AgentNamespacePrefix + "agent"
+	McKlusterletName := "klusterlet-" + o.clusterName
+	McNamespace := o.clusterName + helpers.RandStringRunes_az09(6)
 
 	o.values = Values{
 		ClusterName: o.clusterName,
@@ -87,6 +89,9 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		},
 		Registry:       o.registry,
 		AgentNamespace: agentNamespace,
+
+		McKlusterletName: McKlusterletName,
+		McNamespace:      McNamespace,
 	}
 
 	if o.singleton { // deploy singleton agent
@@ -105,6 +110,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		// values for default mode
 		klusterletName := DefaultOperatorName
 		klusterletNamespace := agentNamespace
+
 		if o.mode == InstallModeHosted {
 			// add hash suffix to avoid conflict
 			klusterletName += "-hosted-" + helpers.RandStringRunes_az09(6)
@@ -119,6 +125,9 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 			Mode:                o.mode,
 			Name:                klusterletName,
 			KlusterletNamespace: klusterletNamespace,
+
+			McKlusterletName: McKlusterletName,
+			McNamespace:      McNamespace,
 		}
 		o.values.ManagedKubeconfig = o.managedKubeconfigFile
 		o.values.RegistrationFeatures = genericclioptionsclusteradm.ConvertToFeatureGateAPI(genericclioptionsclusteradm.SpokeMutableFeatureGate, ocmfeature.DefaultSpokeRegistrationFeatureGates)
@@ -243,24 +252,24 @@ func (o *Options) run() error {
 
 	r := reader.NewResourceReader(o.builder, o.ClusteradmFlags.DryRun, o.Streams)
 
-	_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), o.values.AgentNamespace, metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: o.values.AgentNamespace,
-					Annotations: map[string]string{
-						"workload.openshift.io/allowed": "management",
-					},
-				},
-			}, metav1.CreateOptions{})
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	}
+	// _, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), o.values.AgentNamespace, metav1.GetOptions{})
+	// if err != nil {
+	// 	if errors.IsNotFound(err) {
+	// 		_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
+	// 			ObjectMeta: metav1.ObjectMeta{
+	// 				Name: o.values.AgentNamespace,
+	// 				Annotations: map[string]string{
+	// 					"workload.openshift.io/allowed": "management",
+	// 				},
+	// 			},
+	// 		}, metav1.CreateOptions{})
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	} else {
+	// 		return err
+	// 	}
+	// }
 
 	if o.singleton {
 		err = o.applySingletonAgent(r, kubeClient)
@@ -321,7 +330,8 @@ func (o *Options) applySingletonAgent(r *reader.ResourceReader, kubeClient kuber
 }
 
 func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernetes.Interface, apiExtensionsClient apiextensionsclient.Interface) error {
-	available, err := checkIfRegistrationOperatorAvailable(o.ClusteradmFlags.KubectlFactory)
+	checkmcnamespace := o.values.McNamespace
+	available, err := checkIfRegistrationOperatorAvailable(o.ClusteradmFlags.KubectlFactory, checkmcnamespace)
 	if err != nil {
 		return err
 	}
@@ -370,11 +380,11 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return err
 	}
 
-	klusterletNamespace := o.values.Klusterlet.KlusterletNamespace
+	// klusterletNamespace := o.values.Klusterlet.KlusterletNamespace
 	agentNamespace := o.values.AgentNamespace
 
 	if !available && o.wait && !o.ClusteradmFlags.DryRun {
-		err = waitUntilRegistrationOperatorConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout))
+		err = waitUntilRegistrationOperatorConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
 		if err != nil {
 			return err
 		}
@@ -387,7 +397,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 				return err
 			}
 		} else {
-			err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), klusterletNamespace)
+			err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
 			if err != nil {
 				return err
 			}
@@ -396,7 +406,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	return nil
 }
 
-func checkIfRegistrationOperatorAvailable(f util.Factory) (bool, error) {
+func checkIfRegistrationOperatorAvailable(f util.Factory, checkmcnamespace string) (bool, error) {
 	var restConfig *rest.Config
 	restConfig, err := f.ToRESTConfig()
 	if err != nil {
@@ -407,7 +417,7 @@ func checkIfRegistrationOperatorAvailable(f util.Factory) (bool, error) {
 		return false, err
 	}
 
-	deploy, err := client.AppsV1().Deployments(OperatorNamesapce).
+	deploy, err := client.AppsV1().Deployments(checkmcnamespace).
 		Get(context.TODO(), DefaultOperatorName, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -428,7 +438,7 @@ func checkIfRegistrationOperatorAvailable(f util.Factory) (bool, error) {
 	return meta.IsStatusConditionTrue(conds, "Available"), nil
 }
 
-func waitUntilRegistrationOperatorConditionIsTrue(f util.Factory, timeout int64) error {
+func waitUntilRegistrationOperatorConditionIsTrue(f util.Factory, timeout int64, checkmcnamespace string) error {
 	var restConfig *rest.Config
 	restConfig, err := f.ToRESTConfig()
 	if err != nil {
@@ -453,7 +463,7 @@ func waitUntilRegistrationOperatorConditionIsTrue(f util.Factory, timeout int64)
 
 	return helpers.WatchUntil(
 		func() (watch.Interface, error) {
-			return client.CoreV1().Pods(OperatorNamesapce).
+			return client.CoreV1().Pods(checkmcnamespace).
 				Watch(context.TODO(), metav1.ListOptions{
 					TimeoutSeconds: &timeout,
 					LabelSelector:  "app=klusterlet",

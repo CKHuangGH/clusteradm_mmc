@@ -110,7 +110,6 @@ spec:
                   deployed to the namespace with the same name as klusterlet on the
                   management cluster.
                 maxLength: 63
-                pattern: ^open-cluster-management-[-a-z0-9]*[a-z0-9]$
                 type: string
               nodePlacement:
                 description: NodePlacement enables explicit control over the scheduling
