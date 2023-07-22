@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -52,6 +53,26 @@ func format(s string) string {
 	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
 }
 
+func extractIPAndReplaceDots(input string) string {
+	// 定義IP位置的正規表達式
+	ipPattern := `(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})`
+
+	// 編譯正規表達式
+	re := regexp.MustCompile(ipPattern)
+
+	// 使用FindAllStringSubmatch方法尋找所有符合模式的IP位置
+	matches := re.FindAllStringSubmatch(input, -1)
+
+	// 提取IP位置並將點換成破折號
+	for _, match := range matches {
+		ip := match[1]
+		replacedIP := strings.ReplaceAll(ip, ".", "-")
+		input = strings.ReplaceAll(input, ip, replacedIP)
+	}
+
+	return input
+}
+
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if cmd.Flags() == nil {
 		return fmt.Errorf("no flags have been set: hub-apiserver, hub-token and cluster-name is required")
@@ -78,10 +99,12 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
+	ipfornamespace := extractIPAndReplaceDots(o.hubAPIServer)
 	agentNamespace := AgentNamespacePrefix + "agent"
-	McKlusterletName := "klusterlet-" + o.clusterName + "-" + helpers.RandStringRunes_az09(6)
+	McKlusterletName := "klusterlet-" + o.clusterName + "-" + ipfornamespace
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
-	McNamespace := o.clusterName + "-" + o.hubAPIServer
+
+	McNamespace := o.clusterName + "-" + ipfornamespace
 
 	o.values = Values{
 		ClusterName: o.clusterName,
