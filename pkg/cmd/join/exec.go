@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/url"
 	"os"
-	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -53,24 +53,27 @@ func format(s string) string {
 	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
 }
 
-func extractIPAndReplaceDots(input string) string {
-	// 定義IP位置的正規表達式
-	ipPattern := `(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})`
-
-	// 編譯正規表達式
-	re := regexp.MustCompile(ipPattern)
-
-	// 使用FindAllStringSubmatch方法尋找所有符合模式的IP位置
-	matches := re.FindAllStringSubmatch(input, -1)
-
-	// 提取IP位置並將點換成破折號
-	for _, match := range matches {
-		ip := match[1]
-		replacedIP := strings.ReplaceAll(ip, ".", "-")
-		input = strings.ReplaceAll(input, ip, replacedIP)
+func extractIPAndPortFromURL(inputURL string) (string, string, error) {
+	// 解析URL
+	parsedURL, err := url.Parse(inputURL)
+	if err != nil {
+		return "", "", err
 	}
 
-	return input
+	// 取得IP位置和Port
+	ip := parsedURL.Hostname()
+	port := parsedURL.Port()
+
+	// 如果Port存在，則將點和分號替換為破折號
+	if port != "" {
+		port = strings.ReplaceAll(port, ".", "-")
+		port = strings.ReplaceAll(port, ":", "-")
+	}
+
+	// 將點替換為破折號
+	ip = strings.ReplaceAll(ip, ".", "-")
+
+	return ip, port, nil
 }
 
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
@@ -99,12 +102,12 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
-	ipfornamespace := extractIPAndReplaceDots(o.hubAPIServer)
+	Apiip, Apiport, err := extractIPAndPortFromURL(o.hubAPIServer)
 	agentNamespace := AgentNamespacePrefix + "agent"
-	McKlusterletName := "klusterlet-" + o.clusterName + "-" + ipfornamespace
+	McKlusterletName := "klusterlet-" + o.clusterName + "-" + Apiip + "-" + Apiport
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 
-	McNamespace := o.clusterName + "-" + ipfornamespace
+	McNamespace := o.clusterName + "-" + Apiip + "-" + Apiport
 
 	o.values = Values{
 		ClusterName: o.clusterName,
