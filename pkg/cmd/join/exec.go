@@ -53,27 +53,25 @@ func format(s string) string {
 	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
 }
 
-func extractIPAndPortFromURL(inputURL string) (string, string, error) {
+func toRFC1035Domain(urlString string) string {
 	// 解析URL
-	parsedURL, err := url.Parse(inputURL)
+	parsedURL, err := url.Parse(urlString)
 	if err != nil {
-		return "", "", err
+		return ""
 	}
 
-	// 取得IP位置和Port
-	ip := parsedURL.Hostname()
-	port := parsedURL.Port()
+	// 提取主機部分
+	host := parsedURL.Hostname()
 
-	// 如果Port存在，則將點和分號替換為破折號
-	if port != "" {
-		port = strings.ReplaceAll(port, ".", "-")
-		port = strings.ReplaceAll(port, ":", "-")
-	}
+	// 將主機部分的點和分號替換成橫線
+	host = strings.ReplaceAll(host, ".", "-")
+	host = strings.ReplaceAll(host, ":", "-")
 
-	// 將點替換為破折號
-	ip = strings.ReplaceAll(ip, ".", "-")
+	// 確保開頭和結尾沒有橫線
+	host = strings.TrimSuffix(host, "-")
+	host = strings.TrimPrefix(host, "-")
 
-	return ip, port, nil
+	return host
 }
 
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
@@ -102,12 +100,12 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
-	Apiip, Apiport, err := extractIPAndPortFromURL(o.hubAPIServer)
+	rfc1035Domain := toRFC1035Domain(o.hubAPIServer)
 	agentNamespace := AgentNamespacePrefix + "agent"
-	McKlusterletName := "klusterlet-" + o.clusterName + "-" + Apiip + "-" + Apiport
+	McKlusterletName := "klusterlet-" + o.clusterName + "-" + "(" + rfc1035Domain + ")"
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 
-	McNamespace := o.clusterName + "-" + Apiip + "-" + Apiport
+	McNamespace := o.clusterName + "-" + "(" + rfc1035Domain + ")"
 
 	o.values = Values{
 		ClusterName: o.clusterName,
