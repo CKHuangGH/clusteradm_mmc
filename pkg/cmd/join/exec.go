@@ -73,15 +73,10 @@ func toRFC1035DomainWithPort(urlString string) (string, error) {
 	if port != "" {
 		portNum, err := strconv.Atoi(port)
 		if err != nil || portNum < 1 || portNum > 65535 {
-			return "", fmt.Errorf("Port不是合法的數字範圍")
+			return "", err
 		}
 		// 將Port加入主機部分
 		host = fmt.Sprintf("%s-%s", host, port)
-	}
-
-	// 檢查長度是否超過63個字符
-	if len(host) > 63 {
-		return "", fmt.Errorf("主機名超過63個字符")
 	}
 
 	// 確保開頭和結尾沒有橫線
@@ -119,7 +114,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 	rfc1035Domain, domainerr := toRFC1035DomainWithPort(o.hubAPIServer)
 	if domainerr != nil {
-		return fmt.Errorf("Namespace string is wrong")
+		return fmt.Errorf("namespace string is wrong")
 	}
 
 	agentNamespace := AgentNamespacePrefix + "agent"
