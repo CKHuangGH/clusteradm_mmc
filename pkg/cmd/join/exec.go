@@ -122,7 +122,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 	McKlusterletName := "klusterlet-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + rfc1035Domain
-	McNamespace := rfc1035Domain + helpers.RandStringRunes_az09(6)
+	McNamespace := "mgmt-" + rfc1035Domain
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
