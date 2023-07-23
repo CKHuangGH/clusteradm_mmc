@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -53,11 +54,11 @@ func format(s string) string {
 	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
 }
 
-func toRFC1035Domain(urlString string) string {
+func toRFC1035DomainWithPort(urlString string) (string, error) {
 	// 解析URL
 	parsedURL, err := url.Parse(urlString)
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	// 提取主機部分
@@ -67,11 +68,27 @@ func toRFC1035Domain(urlString string) string {
 	host = strings.ReplaceAll(host, ".", "-")
 	host = strings.ReplaceAll(host, ":", "-")
 
+	// 檢查Port是否為合法的數字
+	port := parsedURL.Port()
+	if port != "" {
+		portNum, err := strconv.Atoi(port)
+		if err != nil || portNum < 1 || portNum > 65535 {
+			return "", fmt.Errorf("Port不是合法的數字範圍")
+		}
+		// 將Port加入主機部分
+		host = fmt.Sprintf("%s-%s", host, port)
+	}
+
+	// 檢查長度是否超過63個字符
+	if len(host) > 63 {
+		return "", fmt.Errorf("主機名超過63個字符")
+	}
+
 	// 確保開頭和結尾沒有橫線
 	host = strings.TrimSuffix(host, "-")
 	host = strings.TrimPrefix(host, "-")
 
-	return host
+	return host, nil
 }
 
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
@@ -100,9 +117,14 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
-	rfc1035Domain := toRFC1035Domain(o.hubAPIServer)
+	rfc1035Domain, err := toRFC1035DomainWithPort(o.hubAPIServer)
+	if err != nil {
+		fmt.Println("錯誤：", err)
+		return
+	}
+
 	agentNamespace := AgentNamespacePrefix + "agent"
-	McKlusterletName := "klusterlet-" + o.clusterName + "-" + "(" + rfc1035Domain + ")"
+	McKlusterletName := "klusterlet-" + o.clusterName + "-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 
 	McNamespace := o.clusterName + "-" + "(" + rfc1035Domain + ")"
