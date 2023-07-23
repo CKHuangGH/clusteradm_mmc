@@ -117,17 +117,16 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
-	rfc1035Domain, err := toRFC1035DomainWithPort(o.hubAPIServer)
-	if err != nil {
-		fmt.Println("錯誤：", err)
-		return
+	rfc1035Domain, domainerr := toRFC1035DomainWithPort(o.hubAPIServer)
+	if domainerr != nil {
+		return fmt.Errorf("Namespace string is wrong")
 	}
 
 	agentNamespace := AgentNamespacePrefix + "agent"
 	McKlusterletName := "klusterlet-" + o.clusterName + "-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 
-	McNamespace := o.clusterName + "-" + "(" + rfc1035Domain + ")"
+	McNamespace := o.clusterName + "-" + rfc1035Domain
 
 	o.values = Values{
 		ClusterName: o.clusterName,
