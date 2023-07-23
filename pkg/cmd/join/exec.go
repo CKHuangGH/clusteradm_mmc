@@ -118,9 +118,9 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	agentNamespace := AgentNamespacePrefix + "agent"
-	McKlusterletName := "klusterlet-" + o.clusterName + "-" + rfc1035Domain
+	//McKlusterletName := "klusterlet-" + o.clusterName + "-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
-
+	McKlusterletName := "klusterlet-" + rfc1035Domain
 	McNamespace := o.clusterName + "-" + rfc1035Domain
 
 	o.values = Values{
