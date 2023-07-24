@@ -13,7 +13,7 @@ import (
 
 var example = `
 # UnJoin a cluster from a hub
-%[1]s unjoin --cluster-name <cluster_name>
+%[1]s unjoin --cluster-name <cluster_name> --ctx-managed-cluster <context>
 `
 
 // NewCmd ...
@@ -44,7 +44,7 @@ func NewCmd(clusteradmFlags *genericclioptionsclusteradm.ClusteradmFlags, stream
 		},
 	}
 	cmd.Flags().StringVar(&o.clusterName, "cluster-name", "", "The name of the joining cluster")
-	cmd.Flags().StringVar(&o.managedCluster, "ctx-managed-cluster", "", "The name of the joining cluster")
+	cmd.Flags().StringVar(&o.managedCluster, "ctx-managed-cluster", "", "The context of the joining cluster")
 	cmd.Flags().BoolVar(&o.purgeOperator, "purge-operator", true, "Purge the operator")
 	cmd.Flags().StringVar(&o.outputFile, "output-file", "", "The generated resources will be copied in the specified file")
 	return cmd

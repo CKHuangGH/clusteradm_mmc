@@ -66,9 +66,11 @@ func toRFC1035DomainWithPort(urlString string) (string, error) {
 
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	klog.V(1).InfoS("unjoin  options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, o.outputFile)
+
 	if o.clusterName == "" {
 		return fmt.Errorf("cluster-name is missing")
 	}
+
 	if o.managedCluster == "" {
 		return fmt.Errorf("ctx-managed-cluster is missing")
 	}
@@ -124,12 +126,12 @@ func (o *Options) run() error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Fprintf(o.Streams.Out, " %s ... \n", kubeClient)
 	klusterletClient, err := klusterletclient.NewForConfig(config)
 	if err != nil {
 		return err
 	}
-
+	fmt.Fprintf(o.Streams.Out, " %s ... \n", klusterletClient)
 	if err := check.CheckForKlusterletCRD(klusterletClient); err != nil {
 		if errors.IsNotFound(err) {
 			fmt.Println("klusterlet CRD not found, there is no need to unjoin.")
