@@ -16,8 +16,9 @@ type Options struct {
 	//Delete the operator by default
 	purgeOperator bool
 	//The file to output the resources will be sent to the file.
-	outputFile string
-	values     Values
+	outputFile     string
+	values         Values
+	managedCluster string
 
 	Streams genericclioptions.IOStreams
 }

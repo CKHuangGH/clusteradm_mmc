@@ -66,6 +66,12 @@ func toRFC1035DomainWithPort(urlString string) (string, error) {
 
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	klog.V(1).InfoS("unjoin  options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, o.outputFile)
+	if o.clusterName == "" {
+		return fmt.Errorf("cluster-name is missing")
+	}
+	if o.managedCluster == "" {
+		return fmt.Errorf("ctx-managed-cluster is missing")
+	}
 
 	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
 	if err != nil {
@@ -78,6 +84,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	}
 	McKlusterletName := "klusterlet-" + rfc1035Domain
 	McNamespace := "mgmt-" + rfc1035Domain
+
 	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McKlusterletName)
 	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McNamespace)
 
