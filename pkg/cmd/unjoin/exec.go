@@ -118,6 +118,10 @@ func (o *Options) run() error {
 	fmt.Fprintf(o.Streams.Out, "Remove applied resources in the managed cluster %s ... \n", o.clusterName)
 
 	f := o.ClusteradmFlags.KubectlFactory
+	o.ClusteradmFlags.Context = o.managedCluster
+
+	fmt.Fprintf(o.Streams.Out, " %s ... \n", o.ClusteradmFlags.Context)
+
 	config, err := f.ToRESTConfig()
 	if err != nil {
 		return err
