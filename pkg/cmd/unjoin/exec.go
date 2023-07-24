@@ -122,16 +122,21 @@ func (o *Options) run() error {
 	if err != nil {
 		return err
 	}
+
 	kubeClient, apiExtensionsClient, _, err := helpers.GetClients(f)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(o.Streams.Out, " %s ... \n", kubeClient)
+
 	klusterletClient, err := klusterletclient.NewForConfig(config)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(o.Streams.Out, " %s ... \n", klusterletClient)
+
+	list, err := klusterletClient.OperatorV1().Klusterlets().List(context.Background(), metav1.ListOptions{})
+
+	fmt.Fprintf(o.Streams.Out, " %s ... \n", len(list.Items))
+
 	if err := check.CheckForKlusterletCRD(klusterletClient); err != nil {
 		if errors.IsNotFound(err) {
 			fmt.Println("klusterlet CRD not found, there is no need to unjoin.")
