@@ -127,6 +127,16 @@ func (o *Options) run() error {
 		return err
 	}
 
+	rfc1035Domain, domainerr := toRFC1035DomainWithPort(config.Host)
+	if domainerr != nil {
+		return fmt.Errorf("namespace string is wrong")
+	}
+	test1 := "klusterlet-" + rfc1035Domain
+	test2 := "mgmt-" + rfc1035Domain
+
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", test1)
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", test2)
+
 	kubeClient, apiExtensionsClient, _, err := helpers.GetClients(f)
 	if err != nil {
 		return err
@@ -136,13 +146,6 @@ func (o *Options) run() error {
 	if err != nil {
 		return err
 	}
-
-	list, err := klusterletClient.OperatorV1().Klusterlets().List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprintf(o.Streams.Out, " %s ... \n", list.Items)
 
 	if err := check.CheckForKlusterletCRD(klusterletClient); err != nil {
 		if errors.IsNotFound(err) {
