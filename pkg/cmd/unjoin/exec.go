@@ -137,7 +137,12 @@ func (o *Options) run() error {
 		return err
 	}
 
-	fmt.Fprintf(o.Streams.Out, " %s ... \n", context.Background())
+	list, err := klusterletClient.OperatorV1().Klusterlets().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(o.Streams.Out, " %s ... \n", list.Items)
 
 	if err := check.CheckForKlusterletCRD(klusterletClient); err != nil {
 		if errors.IsNotFound(err) {
