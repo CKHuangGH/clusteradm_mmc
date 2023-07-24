@@ -4,6 +4,9 @@ package unjoin
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -29,14 +32,63 @@ const (
 	managedKubeconfigSecretName = "external-managed-kubeconfig"
 )
 
+func toRFC1035DomainWithPort(urlString string) (string, error) {
+	// 解析URL
+	parsedURL, err := url.Parse(urlString)
+	if err != nil {
+		return "", err
+	}
+
+	// 提取主機部分
+	host := parsedURL.Hostname()
+
+	// 將主機部分的點和分號替換成橫線
+	host = strings.ReplaceAll(host, ".", "-")
+	host = strings.ReplaceAll(host, ":", "-")
+
+	// 檢查Port是否為合法的數字
+	port := parsedURL.Port()
+	if port != "" {
+		portNum, err := strconv.Atoi(port)
+		if err != nil || portNum < 1 || portNum > 65535 {
+			return "", err
+		}
+		// 將Port加入主機部分
+		host = fmt.Sprintf("%s-%s", host, port)
+	}
+
+	// 確保開頭和結尾沒有橫線
+	host = strings.TrimSuffix(host, "-")
+	host = strings.TrimPrefix(host, "-")
+
+	return host, nil
+}
+
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	klog.V(1).InfoS("unjoin  options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, o.outputFile)
+
+	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
+	if err != nil {
+		return nil
+	}
+
+	rfc1035Domain, domainerr := toRFC1035DomainWithPort(restConfig.Host)
+	if domainerr != nil {
+		return fmt.Errorf("namespace string is wrong")
+	}
+	McKlusterletName := "klusterlet-" + rfc1035Domain
+	McNamespace := "mgmt-" + rfc1035Domain
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McKlusterletName)
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McNamespace)
 
 	o.values = Values{
 		ClusterName:    o.clusterName,
 		DeployMode:     operatorv1.InstallModeDefault,
 		KlusterletName: defaultKlusterletName,
 		AgentNamespace: defaultAgentNamespace,
+
+		McKlusterletName: McKlusterletName,
+		McNamespace:      McNamespace,
 	}
 	klog.V(3).InfoS("values:", "clusterName", o.values.ClusterName)
 	return nil

@@ -28,6 +28,12 @@ type Values struct {
 	DeployMode     operatorv1.InstallMode
 	KlusterletName string
 	AgentNamespace string
+
+	//McKlusterletName
+	McKlusterletName string
+
+	//McNamespace
+	McNamespace string
 }
 
 func newOptions(clusteradmFlags *genericclioptionsclusteradm.ClusteradmFlags, streams genericclioptions.IOStreams) *Options {
