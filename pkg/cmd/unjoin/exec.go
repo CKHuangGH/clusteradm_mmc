@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
@@ -119,7 +120,11 @@ func (o *Options) run() error {
 
 	f := o.ClusteradmFlags.KubectlFactory
 
-	o.ClusteradmFlags.Context = o.managedCluster
+	kubeConfigFlags := &genericclioptions.ConfigFlags{
+		Context: &o.managedCluster,
+	}
+
+	o.ClusteradmFlags.SetContext(kubeConfigFlags.Context)
 
 	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
 	if err != nil {
