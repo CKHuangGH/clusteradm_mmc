@@ -79,7 +79,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return nil
 	}
-	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", restConfig.ContentConfig)
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", restConfig.ContentType)
 	rfc1035Domain, domainerr := toRFC1035DomainWithPort(restConfig.Host)
 	if domainerr != nil {
 		return fmt.Errorf("namespace string is wrong")
