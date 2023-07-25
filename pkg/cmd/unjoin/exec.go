@@ -125,6 +125,16 @@ func (o *Options) run() error {
 		return err
 	}
 
+	config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: o.managedCluster,
+		}).ClientConfig()
+
+	if err != nil {
+		return err
+	}
+
 	kubeClient, apiExtensionsClient, _, err := helpers.GetClients(f)
 	if err != nil {
 		return err
