@@ -130,7 +130,7 @@ func (o *Options) run() error {
 	if err != nil {
 		return nil
 	}
-	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", restConfig.ContentType)
+
 	rfc1035Domain, domainerr := toRFC1035DomainWithPort(restConfig.Host)
 	if domainerr != nil {
 		return fmt.Errorf("namespace string is wrong")
@@ -230,7 +230,7 @@ func (o *Options) getKlusterlet(kubeClient kubernetes.Interface, klusterletClien
 	}
 
 	for _, item := range list.Items {
-		fmt.Fprintf(o.Streams.Out, "list %s \n", item.Spec.ClusterName)
+		fmt.Fprintf(o.Streams.Out, "list %s \n", item.Namespace)
 		if item.Spec.ClusterName == o.values.ClusterName {
 			if item.Spec.DeployOption.Mode == operatorv1.InstallModeHosted {
 				o.values.DeployMode = item.Spec.DeployOption.Mode
