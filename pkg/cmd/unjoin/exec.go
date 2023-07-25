@@ -121,6 +121,21 @@ func (o *Options) run() error {
 
 	o.ClusteradmFlags.SetContext(&o.managedCluster)
 
+	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
+	if err != nil {
+		return nil
+	}
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", restConfig.ContentType)
+	rfc1035Domain, domainerr := toRFC1035DomainWithPort(restConfig.Host)
+	if domainerr != nil {
+		return fmt.Errorf("namespace string is wrong")
+	}
+	McKlusterletName := "klusterlet-" + rfc1035Domain
+	McNamespace := "mgmt-" + rfc1035Domain
+
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McKlusterletName)
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McNamespace)
+
 	config, err := f.ToRESTConfig()
 	if err != nil {
 		return err
