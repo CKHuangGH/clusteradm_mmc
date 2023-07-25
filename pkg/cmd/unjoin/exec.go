@@ -118,19 +118,10 @@ func (o *Options) run() error {
 	fmt.Fprintf(o.Streams.Out, "Remove applied resources in the managed cluster %s ... \n", o.clusterName)
 
 	f := o.ClusteradmFlags.KubectlFactory
-	// o.ClusteradmFlags = o.managedCluster
+
+	o.ClusteradmFlags.SetContext(&o.managedCluster)
 
 	config, err := f.ToRESTConfig()
-	if err != nil {
-		return err
-	}
-
-	config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{},
-		&clientcmd.ConfigOverrides{
-			CurrentContext: o.managedCluster,
-		}).ClientConfig()
-
 	if err != nil {
 		return err
 	}
