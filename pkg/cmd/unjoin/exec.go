@@ -119,7 +119,7 @@ func (o *Options) run() error {
 
 	f := o.ClusteradmFlags.KubectlFactory
 
-	o.ClusteradmFlags.SetContext(&o.managedCluster)
+	o.ClusteradmFlags.Context = o.managedCluster
 
 	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
 	if err != nil {
