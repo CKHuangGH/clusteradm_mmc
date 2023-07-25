@@ -15,7 +15,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
@@ -119,27 +118,6 @@ func (o *Options) run() error {
 	fmt.Fprintf(o.Streams.Out, "Remove applied resources in the managed cluster %s ... \n", o.clusterName)
 
 	f := o.ClusteradmFlags.KubectlFactory
-
-	kubeConfigFlags := &genericclioptions.ConfigFlags{
-		Context: &o.managedCluster,
-	}
-
-	o.ClusteradmFlags.SetContext(kubeConfigFlags.Context)
-
-	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
-	if err != nil {
-		return nil
-	}
-
-	rfc1035Domain, domainerr := toRFC1035DomainWithPort(restConfig.Host)
-	if domainerr != nil {
-		return fmt.Errorf("namespace string is wrong")
-	}
-	McKlusterletName := "klusterlet-" + rfc1035Domain
-	McNamespace := "mgmt-" + rfc1035Domain
-
-	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McKlusterletName)
-	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McNamespace)
 
 	config, err := f.ToRESTConfig()
 	if err != nil {
