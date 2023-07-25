@@ -136,8 +136,6 @@ func (o *Options) run() error {
 		return err
 	}
 
-	// list, err := klusterletClient.OperatorV1().Klusterlets().List(context.Value(), metav1.ListOptions{})
-
 	if err := check.CheckForKlusterletCRD(klusterletClient); err != nil {
 		if errors.IsNotFound(err) {
 			fmt.Println("klusterlet CRD not found, there is no need to unjoin.")
@@ -212,6 +210,7 @@ func (o *Options) getKlusterlet(kubeClient kubernetes.Interface, klusterletClien
 	}
 
 	for _, item := range list.Items {
+		fmt.Fprintf(o.Streams.Out, "list %s \n", item.Spec.ClusterName)
 		if item.Spec.ClusterName == o.values.ClusterName {
 			if item.Spec.DeployOption.Mode == operatorv1.InstallModeHosted {
 				o.values.DeployMode = item.Spec.DeployOption.Mode
