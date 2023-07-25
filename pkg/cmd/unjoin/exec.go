@@ -79,7 +79,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return nil
 	}
-
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", restConfig.ContentConfig)
 	rfc1035Domain, domainerr := toRFC1035DomainWithPort(restConfig.Host)
 	if domainerr != nil {
 		return fmt.Errorf("namespace string is wrong")
@@ -118,24 +118,12 @@ func (o *Options) run() error {
 	fmt.Fprintf(o.Streams.Out, "Remove applied resources in the managed cluster %s ... \n", o.clusterName)
 
 	f := o.ClusteradmFlags.KubectlFactory
-	o.ClusteradmFlags.Context = o.managedCluster
-
-	fmt.Fprintf(o.Streams.Out, " %s ... \n", o.ClusteradmFlags.Context)
+	// o.ClusteradmFlags = o.managedCluster
 
 	config, err := f.ToRESTConfig()
 	if err != nil {
 		return err
 	}
-
-	rfc1035Domain, domainerr := toRFC1035DomainWithPort(config.Host)
-	if domainerr != nil {
-		return fmt.Errorf("namespace string is wrong")
-	}
-	test1 := "klusterlet-" + rfc1035Domain
-	test2 := "mgmt-" + rfc1035Domain
-
-	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", test1)
-	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", test2)
 
 	kubeClient, apiExtensionsClient, _, err := helpers.GetClients(f)
 	if err != nil {
@@ -146,6 +134,8 @@ func (o *Options) run() error {
 	if err != nil {
 		return err
 	}
+
+	// list, err := klusterletClient.OperatorV1().Klusterlets().List(context.Value(), metav1.ListOptions{})
 
 	if err := check.CheckForKlusterletCRD(klusterletClient); err != nil {
 		if errors.IsNotFound(err) {
