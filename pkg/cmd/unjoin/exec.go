@@ -110,7 +110,7 @@ func (o *Options) validate() error {
 	return nil
 }
 
-func (o *Options) run() error {
+func (o *Options) run(cmd *cobra.Command, args []string) error {
 	// 1. get klusterlet cr by clustername
 	// 2. check if any applied work still running
 	// 3. delete klusterlet cr
