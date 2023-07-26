@@ -79,7 +79,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return nil
 	}
-	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", restConfig.ContentType)
+
 	rfc1035Domain, domainerr := toRFC1035DomainWithPort(restConfig.Host)
 	if domainerr != nil {
 		return fmt.Errorf("namespace string is wrong")
@@ -117,12 +117,24 @@ func (o *Options) run() error {
 	// 4. if --purge-operator=true and no klusterlet cr exists, purge the operator
 	fmt.Fprintf(o.Streams.Out, "Remove applied resources in the managed cluster %s ... \n", o.clusterName)
 
+	o.ClusteradmFlags.Context = o.managedCluster
+
 	f := o.ClusteradmFlags.KubectlFactory
 
 	config, err := f.ToRESTConfig()
 	if err != nil {
 		return err
 	}
+
+	rfc1035Domain, domainerr := toRFC1035DomainWithPort(config.Host)
+	if domainerr != nil {
+		return fmt.Errorf("namespace string is wrong")
+	}
+	McKlusterletName := "klusterlet-" + rfc1035Domain
+	McNamespace := "mgmt-" + rfc1035Domain
+
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McKlusterletName)
+	fmt.Fprintf(o.Streams.Out, "testing %s ... \n", McNamespace)
 
 	kubeClient, apiExtensionsClient, _, err := helpers.GetClients(f)
 	if err != nil {
@@ -228,7 +240,7 @@ func isAppliedManifestWorkExist(client appliedworkclient.Interface) bool {
 		return false
 	}
 	if err != nil {
-		klog.Warningf("can not list applied manifest works: %v, ypu should check and delete the applied manifest works manully.", err)
+		klog.Warningf("can not list applied manifest works: %v, you should check and delete the applied manifest works manully.", err)
 		return false
 	}
 	if len(obj.Items) > 0 {
