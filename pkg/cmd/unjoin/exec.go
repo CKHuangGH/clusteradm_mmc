@@ -119,7 +119,9 @@ func (o *Options) run(cmd *cobra.Command, args []string) error {
 
 	fmt.Fprintf(o.Streams.Out, "%s\n", o.ClusteradmFlags.Context)
 
-	o.ClusteradmFlags.Context = o.managedCluster
+	// o.ClusteradmFlags.Context = o.managedCluster
+
+	o.ClusteradmFlags.SetContext(&o.managedCluster)
 
 	fmt.Fprintf(o.Streams.Out, "%s\n", o.ClusteradmFlags.Context)
 
