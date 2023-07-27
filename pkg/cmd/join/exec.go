@@ -383,6 +383,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	// If Deployment/klusterlet is not deployed, deploy it
 	if !available {
 		vclusterfiles = append(vclusterfiles,
+			"join/namespace.yaml",
 			"join/vcluster/serviceaccount.yaml",
 			"join/vcluster/workloadserviceaccount.yaml",
 			"join/vcluster/coredns.yaml",
@@ -395,7 +396,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		)
 		klusterletfiles = append(klusterletfiles,
 			"join/klusterlets.crd.yaml",
-			"join/namespace.yaml",
 			"join/service_account.yaml",
 			"join/cluster_role.yaml",
 			"join/cluster_role_binding.yaml",
