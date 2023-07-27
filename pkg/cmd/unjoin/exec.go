@@ -117,15 +117,9 @@ func (o *Options) run(cmd *cobra.Command, args []string) error {
 	// 4. if --purge-operator=true and no klusterlet cr exists, purge the operator
 	fmt.Fprintf(o.Streams.Out, "Remove applied resources in the managed cluster %s ... \n", o.clusterName)
 
-	fmt.Fprintf(o.Streams.Out, "%s\n", o.ClusteradmFlags.Context)
-
-	// o.ClusteradmFlags.Context = o.managedCluster
-
-	o.ClusteradmFlags.SetContext(&o.managedCluster)
-
-	fmt.Fprintf(o.Streams.Out, "%s\n", o.ClusteradmFlags.Context)
-
 	f := o.ClusteradmFlags.KubectlFactory
+
+	o.ClusteradmFlags.Context = o.managedCluster
 
 	config, err := f.ToRESTConfig()
 	if err != nil {
