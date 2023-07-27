@@ -392,6 +392,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/vcluster/init-configmap.yaml",
 			"join/vcluster/role.yaml",
 			"join/vcluster/rolebinding.yaml",
+			"join/vcluster/coredns.yaml",
 			"join/vcluster/service.yaml",
 			"join/vcluster/statefulset-service.yaml",
 			"join/vcluster/statefulset.yaml",
