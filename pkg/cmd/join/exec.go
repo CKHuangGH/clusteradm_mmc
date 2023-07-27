@@ -378,15 +378,11 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return err
 	}
 
-	files := []string{}
+	klusterletfiles := []string{}
+	vclusterfiles := []string{}
 	// If Deployment/klusterlet is not deployed, deploy it
 	if !available {
-		files = append(files,
-			"join/klusterlets.crd.yaml",
-			"join/namespace.yaml",
-			"join/service_account.yaml",
-			"join/cluster_role.yaml",
-			"join/cluster_role_binding.yaml",
+		vclusterfiles = append(vclusterfiles,
 			"join/vcluster/serviceaccount.yaml",
 			"join/vcluster/workloadserviceaccount.yaml",
 			"join/vcluster/coredns.yaml",
@@ -397,20 +393,28 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/vcluster/statefulset-service.yaml",
 			"join/vcluster/statefulset.yaml",
 		)
+		klusterletfiles = append(klusterletfiles,
+			"join/klusterlets.crd.yaml",
+			"join/namespace.yaml",
+			"join/service_account.yaml",
+			"join/cluster_role.yaml",
+			"join/cluster_role_binding.yaml",
+		)
 	}
-	files = append(files,
+	klusterletfiles = append(klusterletfiles,
 		"bootstrap_hub_kubeconfig.yaml",
 	)
 
-	if o.mode == InstallModeHosted {
-		files = append(files,
-			"join/hosted/external_managed_kubeconfig.yaml",
-		)
-	}
-
-	err = r.Apply(scenario.Files, o.values, files...)
+	err = r.Apply(scenario.Files, o.values, vclusterfiles...)
 	if err != nil {
 		return err
+	}
+
+	if o.wait && !o.ClusteradmFlags.DryRun {
+		err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
+		if err != nil {
+			return err
+		}
 	}
 
 	if !available {
@@ -418,6 +422,17 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		if err != nil {
 			return err
 		}
+	}
+
+	if o.mode == InstallModeHosted {
+		klusterletfiles = append(klusterletfiles,
+			"join/hosted/external_managed_kubeconfig.yaml",
+		)
+	}
+
+	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
+	if err != nil {
+		return err
 	}
 
 	if !o.ClusteradmFlags.DryRun {
@@ -449,10 +464,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			}
 		} else {
 			err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
-			if err != nil {
-				return err
-			}
-			err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
 			if err != nil {
 				return err
 			}
