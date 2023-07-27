@@ -387,7 +387,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/service_account.yaml",
 			"join/cluster_role.yaml",
 			"join/cluster_role_binding.yaml",
-			"join/cluster_role_binding.yaml",
 			"join/vcluster.yaml",
 		)
 	}
