@@ -456,10 +456,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			if err != nil {
 				return err
 			}
-			err = waitUntilVclusterDnsConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
-			if err != nil {
-				return err
-			}
 		}
 	}
 	return nil
@@ -603,9 +599,9 @@ func waitUntilVclusterConditionIsTrue(f util.Factory, timeout int64, agentNamesp
 	phase := &atomic.Value{}
 	phase.Store("")
 	klusterletSpinner := printer.NewSpinnerWithStatus(
-		"Waiting for klusterlet agent to become ready...",
+		"Waiting for vcluster to become ready...",
 		time.Millisecond*500,
-		"Klusterlet is now available.\n",
+		"vcluster is now available.\n",
 		func() string {
 			return phase.Load().(string)
 		})
@@ -618,52 +614,6 @@ func waitUntilVclusterConditionIsTrue(f util.Factory, timeout int64, agentNamesp
 				Watch(context.TODO(), metav1.ListOptions{
 					TimeoutSeconds: &timeout,
 					LabelSelector:  "app=vcluster",
-				})
-		},
-		func(event watch.Event) bool {
-			pod, ok := event.Object.(*corev1.Pod)
-			if !ok {
-				return false
-			}
-			phase.Store(printer.GetSpinnerPodStatus(pod))
-			conds := make([]metav1.Condition, len(pod.Status.Conditions))
-			for i := range pod.Status.Conditions {
-				conds[i] = metav1.Condition{
-					Type:    string(pod.Status.Conditions[i].Type),
-					Status:  metav1.ConditionStatus(pod.Status.Conditions[i].Status),
-					Reason:  pod.Status.Conditions[i].Reason,
-					Message: pod.Status.Conditions[i].Message,
-				}
-			}
-			return meta.IsStatusConditionTrue(conds, "Ready")
-		},
-	)
-}
-
-func waitUntilVclusterDnsConditionIsTrue(f util.Factory, timeout int64, agentNamespace string) error {
-	client, err := f.KubernetesClientSet()
-	if err != nil {
-		return err
-	}
-
-	phase := &atomic.Value{}
-	phase.Store("")
-	klusterletSpinner := printer.NewSpinnerWithStatus(
-		"Waiting for klusterlet agent to become ready...",
-		time.Millisecond*500,
-		"Klusterlet is now available.\n",
-		func() string {
-			return phase.Load().(string)
-		})
-	klusterletSpinner.Start()
-	defer klusterletSpinner.Stop()
-
-	return helpers.WatchUntil(
-		func() (watch.Interface, error) {
-			return client.CoreV1().Pods(agentNamespace).
-				Watch(context.TODO(), metav1.ListOptions{
-					TimeoutSeconds: &timeout,
-					LabelSelector:  "k8s-app=kube-dns",
 				})
 		},
 		func(event watch.Event) bool {
