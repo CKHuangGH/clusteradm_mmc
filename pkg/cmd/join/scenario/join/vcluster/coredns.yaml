@@ -62,7 +62,6 @@ data:
     data:
       Corefile: |
         .:1053 {
-            {{.LOG_IN_DEBUG}}
             errors
             health
             ready

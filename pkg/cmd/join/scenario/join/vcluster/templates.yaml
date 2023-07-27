@@ -399,7 +399,7 @@ spec:
           configMap:
             name: my-vcluster-coredns
       containers:
-      - image: rancher/k3s:v1.26.0-k3s1
+      - image: rancher/k3s:v1.27.3-k3s1
         name: vcluster
         # k3s has a problem running as pid 1 and disabled agents on cgroupv2
         # nodes as it will try to evacuate the cgroups there. Starting k3s
