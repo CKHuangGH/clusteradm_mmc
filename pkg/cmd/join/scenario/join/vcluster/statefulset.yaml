@@ -1,0 +1,140 @@
+# Source: vcluster/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: my-vcluster
+  namespace: {{ .McNamespace }}
+  labels:
+    app: vcluster
+    chart: "vcluster-0.15.2"
+    release: "my-vcluster"
+    heritage: "Helm"
+spec:
+  serviceName: my-vcluster-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vcluster
+      release: my-vcluster
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 5Gi
+  template:
+    metadata:
+      labels:
+        app: vcluster
+        release: my-vcluster
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        {}
+      tolerations:
+        []
+      serviceAccountName: vc-my-vcluster
+      volumes:
+        - name: config
+          emptyDir: {}
+        - name: coredns
+          configMap:
+            name: my-vcluster-coredns
+      containers:
+      - image: rancher/k3s:v1.26.0-k3s1
+        name: vcluster
+        # k3s has a problem running as pid 1 and disabled agents on cgroupv2
+        # nodes as it will try to evacuate the cgroups there. Starting k3s
+        # through a shell makes it non pid 1 and prevents this from happening
+        command:
+          - /bin/sh
+        args:
+          - -c
+          - /bin/k3s
+            server
+            --write-kubeconfig=/data/k3s-config/kube-config.yaml
+            --data-dir=/data
+            --disable=traefik,servicelb,metrics-server,local-storage,coredns
+            --disable-network-policy
+            --disable-agent
+            --disable-cloud-controller
+            --flannel-backend=none
+            --disable-scheduler
+            --kube-controller-manager-arg=controllers=*,-nodeipam,-nodelifecycle,-persistentvolume-binder,-attachdetach,-persistentvolume-expander,-cloud-node-lifecycle,-ttl
+            --kube-apiserver-arg=endpoint-reconciler-type=none
+            --service-cidr=$(SERVICE_CIDR)
+            && true
+        env:
+          - name: SERVICE_CIDR
+            valueFrom:
+              configMapKeyRef:
+                name: "vc-cidr-my-vcluster"
+                key: cidr
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+          - name: config
+            mountPath: /etc/rancher
+          - mountPath: /data
+            name: data
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+      - name: syncer
+        image: "ghcr.io/loft-sh/vcluster:0.15.2"
+        args:
+          - --name=my-vcluster
+          - --service-account=vc-workload-my-vcluster
+          - --kube-config-context-name=my-vcluster
+          - --leader-elect=false
+          - --sync=-ingressclasses
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8443
+            scheme: HTTPS
+          failureThreshold: 60
+          initialDelaySeconds: 60
+          periodSeconds: 2
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8443
+            scheme: HTTPS
+          failureThreshold: 60
+          periodSeconds: 2
+        securityContext:
+          allowPrivilegeEscalation: false
+        env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: VCLUSTER_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: CONFIG
+            value: |-
+              ---
+          - name: VCLUSTER_TELEMETRY_CONFIG
+            value: "{\"disabled\":\"false\",\"instanceCreator\":\"helm\",\"instanceCreatorUID\":\"\"}"
+        volumeMounts:
+          - name: coredns
+            mountPath: /manifests/coredns
+            readOnly: true
+          - mountPath: /data
+            name: data
+            readOnly: true
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+          requests:
+            cpu: 20m
+            memory: 64Mi

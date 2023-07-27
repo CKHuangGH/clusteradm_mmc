@@ -1,0 +1,14 @@
+# Source: vcluster/templates/init-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-vcluster-init-manifests
+  namespace: {{ .McNamespace }}
+  labels:
+    app: vcluster
+    chart: "vcluster-0.15.2"
+    release: "my-vcluster"
+    heritage: "Helm"
+data:
+  manifests: |-
+    ---
