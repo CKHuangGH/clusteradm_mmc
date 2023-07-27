@@ -389,13 +389,13 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/cluster_role_binding.yaml",
 			"join/vcluster/serviceaccount.yaml",
 			"join/vcluster/workloadserviceaccount.yaml",
-			"join/vcluster/coredns.yaml",
 			"join/vcluster/init-configmap.yaml",
 			"join/vcluster/role.yaml",
 			"join/vcluster/rolebinding.yaml",
 			"join/vcluster/service.yaml",
 			"join/vcluster/statefulset-service.yaml",
 			"join/vcluster/statefulset.yaml",
+			"join/vcluster/coredns.yaml",
 		)
 	}
 	files = append(files,
