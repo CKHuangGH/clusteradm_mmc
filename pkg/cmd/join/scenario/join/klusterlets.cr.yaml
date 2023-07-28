@@ -11,8 +11,8 @@ spec:
   clusterName: {{ .ClusterName }}
   namespace: {{ .McNamespace }} 
   externalServerURLs:
-  {{ if .Klusterlet.APIServer }}
-  - url: {{ .Klusterlet.APIServer }}
+  {{ if .VclusterApiUrl }}
+  - url: {{ .VclusterApiUrl }}
   {{ end }}
   {{if .RegistrationFeatures}}
   registrationConfiguration:

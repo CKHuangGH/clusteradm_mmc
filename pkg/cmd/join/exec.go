@@ -123,7 +123,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	McKlusterletName := "klusterlet-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + rfc1035Domain
 	McNamespace := "mgmt-" + rfc1035Domain
-
+	VclusterApiUrl := "https://localhost:8443"
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
@@ -132,6 +132,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		Registry:       o.registry,
 		AgentNamespace: agentNamespace,
 
+		VclusterApiUrl:   VclusterApiUrl,
 		McKlusterletName: McKlusterletName,
 		McNamespace:      McNamespace,
 	}
