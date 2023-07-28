@@ -12,7 +12,6 @@ spec:
   namespace: {{ .McNamespace }} 
   externalServerURLs:
   - url: {{ .VclusterApiUrl }}
-  {{ end }}
   {{if .RegistrationFeatures}}
   registrationConfiguration:
     featureGates:
