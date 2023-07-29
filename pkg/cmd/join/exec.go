@@ -439,7 +439,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(kubeconfigBytes)
 
-	o.mode = "hosted"
+	o.mode = "Hosted"
 	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
 	if err != nil {
 		return err
