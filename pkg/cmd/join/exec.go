@@ -439,6 +439,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(kubeconfigBytes)
 
+	o.mode = "hosted"
 	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
 	if err != nil {
 		return err
@@ -456,7 +457,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	}
 
 	// klusterletNamespace := o.values.Klusterlet.KlusterletNamespace
-	agentNamespace := o.values.AgentNamespace
+	// agentNamespace := o.values.AgentNamespace
 
 	if !available && o.wait && !o.ClusteradmFlags.DryRun {
 		err = waitUntilRegistrationOperatorConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
@@ -466,16 +467,20 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	}
 
 	if o.wait && !o.ClusteradmFlags.DryRun {
-		if o.mode == InstallModeHosted {
-			err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), agentNamespace)
-			if err != nil {
-				return err
-			}
-		} else {
-			err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
-			if err != nil {
-				return err
-			}
+		// if o.mode == InstallModeHosted {
+		// 	err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), agentNamespace)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// } else {
+		// 	err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
+		err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
