@@ -5,7 +5,7 @@ metadata:
   name: {{ .McKlusterletName }}
 spec:
   deployOption:
-    mode: {{ .Klusterlet.Mode }}
+    mode: {{ .Vclustermode }}
   registrationImagePullSpec: {{ .Registry }}/registration:{{ .BundleVersion.RegistrationImageVersion }}
   workImagePullSpec: {{ .Registry }}/work:{{ .BundleVersion.RegistrationImageVersion }}  
   clusterName: {{ .ClusterName }}

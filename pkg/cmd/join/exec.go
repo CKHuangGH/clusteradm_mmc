@@ -90,7 +90,6 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if cmd.Flags() == nil {
 		return fmt.Errorf("no flags have been set: hub-apiserver, hub-token and cluster-name is required")
 	}
-
 	if o.token == "" {
 		return fmt.Errorf("token is missing")
 	}
@@ -133,6 +132,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 		McKlusterletName: McKlusterletName,
 		McNamespace:      McNamespace,
+		Vclustermode:     "Hosted",
 	}
 
 	if o.singleton { // deploy singleton agent
