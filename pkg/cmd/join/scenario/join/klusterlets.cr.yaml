@@ -9,7 +9,11 @@ spec:
   registrationImagePullSpec: {{ .Registry }}/registration:{{ .BundleVersion.RegistrationImageVersion }}
   workImagePullSpec: {{ .Registry }}/work:{{ .BundleVersion.RegistrationImageVersion }}  
   clusterName: {{ .ClusterName }}
-  namespace: {{ .McNamespace }} 
+  namespace: {{ .McNamespace }}
+  externalServerURLs:
+  {{ if .Klusterlet.APIServer }}
+  - url: {{ .Klusterlet.APIServer }}
+  {{ end }}
   {{if .RegistrationFeatures}}
   registrationConfiguration:
     featureGates:
