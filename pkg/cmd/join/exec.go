@@ -394,6 +394,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/vcluster/service.yaml",
 			"join/vcluster/statefulset-service.yaml",
 			"join/vcluster/statefulset.yaml",
+			"join/vcluster/statefulset-service-export.yaml",
 		)
 		klusterletfiles = append(klusterletfiles,
 			"join/klusterlets.crd.yaml",
