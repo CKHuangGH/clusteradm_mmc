@@ -123,7 +123,6 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	McKlusterletName := "klusterlet-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + rfc1035Domain
 	McNamespace := "mgmt-" + rfc1035Domain
-	VclusterApiUrl := "https://localhost:443"
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
@@ -132,7 +131,6 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		Registry:       o.registry,
 		AgentNamespace: agentNamespace,
 
-		VclusterApiUrl:   VclusterApiUrl,
 		McKlusterletName: McKlusterletName,
 		McNamespace:      McNamespace,
 	}
@@ -401,6 +399,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/service_account.yaml",
 			"join/cluster_role.yaml",
 			"join/cluster_role_binding.yaml",
+			"join/vcluster_kubeconfig.yaml",
 		)
 	}
 	klusterletfiles = append(klusterletfiles,
@@ -431,6 +430,14 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/hosted/external_managed_kubeconfig.yaml",
 		)
 	}
+
+	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-my-vcluster", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	kubeconfigBytes := kubeconfigSecret.Data["kubeconfig"]
+
+	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(kubeconfigBytes)
 
 	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
 	if err != nil {

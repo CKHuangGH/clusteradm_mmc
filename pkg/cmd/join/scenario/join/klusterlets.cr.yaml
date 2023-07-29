@@ -10,8 +10,6 @@ spec:
   workImagePullSpec: {{ .Registry }}/work:{{ .BundleVersion.RegistrationImageVersion }}  
   clusterName: {{ .ClusterName }}
   namespace: {{ .McNamespace }} 
-  externalServerURLs:
-  - url: {{ .VclusterApiUrl }}
   {{if .RegistrationFeatures}}
   registrationConfiguration:
     featureGates:

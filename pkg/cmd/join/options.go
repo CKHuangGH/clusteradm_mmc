@@ -83,8 +83,6 @@ type Values struct {
 	//McNamespace
 	McNamespace string
 
-	VclusterApiUrl string
-
 	//Features is the slice of feature for registration
 	RegistrationFeatures []operatorv1.FeatureGate
 
