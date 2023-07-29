@@ -435,7 +435,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	if err != nil {
 		return err
 	}
-	kubeconfigBytes := kubeconfigSecret.Data["kubeconfig"]
+	kubeconfigBytes := kubeconfigSecret.Data["config"]
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(kubeconfigBytes)
 
