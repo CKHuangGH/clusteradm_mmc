@@ -474,13 +474,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return err
 	}
 
-	fmt.Fprintf(o.Streams.Out, "%s\n\n", withHttp)
-
-	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-my-vcluster", metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
 	vclusterPortNumber, err := kubeClient.CoreV1().Services(o.values.McNamespace).Get(context.Background(), "vcluster-nodeport", metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -497,12 +490,19 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	nodePortStr := strconv.Itoa(int(nodePort))
 
 	fullurl := withHttp + ":" + nodePortStr
-	fmt.Fprintf(o.Streams.Out, "%s\n\n", fullurl)
+
+	fmt.Fprintf(o.Streams.Out, " %s\n", fullurl)
+	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-my-vcluster", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
 
 	kubeconfigBytes := kubeconfigSecret.Data["config"]
+	fmt.Fprintf(o.Streams.Out, " %s\n", kubeconfigBytes)
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(kubeconfigBytes)
 
+	fmt.Fprintf(o.Streams.Out, " %s\n", o.values.ManagedKubeconfig)
 	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
 	if err != nil {
 		return err
