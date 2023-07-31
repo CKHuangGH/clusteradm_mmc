@@ -153,7 +153,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 			APIServer: o.hubAPIServer,
 		},
 		Registry:       o.registry,
-		AgentNamespace: agentNamespace,
+		AgentNamespace: McNamespace,
 
 		McKlusterletName: McKlusterletName,
 		McNamespace:      McNamespace,
@@ -176,13 +176,13 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 		// values for default mode
 		klusterletName := DefaultOperatorName
-		klusterletNamespace := agentNamespace
+		// klusterletNamespace := agentNamespace
 
 		if o.mode == InstallModeHosted {
 			// add hash suffix to avoid conflict
 			klusterletName += "-hosted-" + helpers.RandStringRunes_az09(6)
-			agentNamespace = klusterletName
-			klusterletNamespace = AgentNamespacePrefix + agentNamespace
+			agentNamespace = McNamespace
+			// klusterletNamespace = AgentNamespacePrefix + agentNamespace
 
 			// update AgentNamespace
 			o.values.AgentNamespace = agentNamespace
@@ -190,8 +190,8 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 		o.values.Klusterlet = Klusterlet{
 			Mode:                o.mode,
-			Name:                klusterletName,
-			KlusterletNamespace: klusterletNamespace,
+			Name:                McKlusterletName,
+			KlusterletNamespace: McNamespace,
 
 			McKlusterletName: McKlusterletName,
 			McNamespace:      McNamespace,
