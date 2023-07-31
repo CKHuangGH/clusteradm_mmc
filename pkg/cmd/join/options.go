@@ -80,8 +80,6 @@ type Values struct {
 	//McKlusterletName
 	McKlusterletName string
 
-	Vclustermode string
-
 	//McNamespace
 	McNamespace string
 

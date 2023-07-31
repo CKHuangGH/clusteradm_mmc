@@ -145,7 +145,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 	// McKlusterletName := "klusterlet-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + rfc1035Domain
-	McNamespace := "mgmt-" + rfc1035Domain
+	McNamespace := "mgmt-" + rfc1035Domain + "kluster"
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
@@ -156,7 +156,6 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 		McKlusterletName: McNamespace,
 		McNamespace:      McNamespace,
-		Vclustermode:     "Hosted",
 		ApiAddress:       ipAddress,
 	}
 
@@ -458,11 +457,11 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		}
 	}
 
-	if o.mode == InstallModeHosted {
-		klusterletfiles = append(klusterletfiles,
-			"join/hosted/external_managed_kubeconfig.yaml",
-		)
-	}
+	// if o.mode == InstallModeHosted {
+	// 	klusterletfiles = append(klusterletfiles,
+	// 		"join/hosted/external_managed_kubeconfig.yaml",
+	// 	)
+	// }
 
 	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
 	if err != nil {
