@@ -516,6 +516,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return err
 	}
 	fmt.Fprintf(o.Streams.Out, " %s\n", updatedKubeconfig)
+
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
 
 	fmt.Fprintf(o.Streams.Out, " %s\n", o.values.ManagedKubeconfig)
