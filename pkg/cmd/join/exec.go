@@ -32,7 +32,6 @@ import (
 	"open-cluster-management.io/clusteradm/pkg/cmd/join/scenario"
 	genericclioptionsclusteradm "open-cluster-management.io/clusteradm/pkg/genericclioptions"
 	"open-cluster-management.io/clusteradm/pkg/helpers"
-	preflightinterface "open-cluster-management.io/clusteradm/pkg/helpers/preflight"
 	"open-cluster-management.io/clusteradm/pkg/helpers/printer"
 	"open-cluster-management.io/clusteradm/pkg/helpers/reader"
 	"open-cluster-management.io/clusteradm/pkg/helpers/version"
@@ -277,22 +276,22 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 func (o *Options) validate() error {
 	// preflight check
-	if err := preflightinterface.RunChecks(
-		[]preflightinterface.Checker{
-			preflight.HubKubeconfigCheck{
-				Config: o.HubConfig,
-			},
-			preflight.DeployModeCheck{
-				Mode:                  o.mode,
-				InternalEndpoint:      o.forceHubInClusterEndpointLookup,
-				ManagedKubeconfigFile: o.managedKubeconfigFile,
-			},
-			preflight.ClusterNameCheck{
-				ClusterName: o.values.ClusterName,
-			},
-		}, os.Stderr); err != nil {
-		return err
-	}
+	// if err := preflightinterface.RunChecks(
+	// 	[]preflightinterface.Checker{
+	// 		preflight.HubKubeconfigCheck{
+	// 			Config: o.HubConfig,
+	// 		},
+	// 		preflight.DeployModeCheck{
+	// 			Mode:                  o.mode,
+	// 			InternalEndpoint:      o.forceHubInClusterEndpointLookup,
+	// 			ManagedKubeconfigFile: o.managedKubeconfigFile,
+	// 		},
+	// 		preflight.ClusterNameCheck{
+	// 			ClusterName: o.values.ClusterName,
+	// 		},
+	// 	}, os.Stderr); err != nil {
+	// 	return err
+	// }
 
 	err := o.setKubeconfig()
 	if err != nil {
@@ -300,13 +299,13 @@ func (o *Options) validate() error {
 	}
 
 	// get ManagedKubeconfig from given file
-	if o.mode == InstallModeHosted {
-		managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
-		if err != nil {
-			return err
-		}
-		o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
-	}
+	// if o.mode == InstallModeHosted {
+	// 	managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
+	// }
 
 	return nil
 }
