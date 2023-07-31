@@ -486,7 +486,16 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return err
 	}
 
-	fmt.Fprintf(o.Streams.Out, "%s\n\n", vclusterPortNumber)
+	// 獲取 NodePort
+	var nodePort int32
+	for _, port := range vclusterPortNumber.Spec.Ports {
+		if port.NodePort != 0 {
+			nodePort = port.NodePort
+			break
+		}
+	}
+
+	fmt.Fprintf(o.Streams.Out, "%s\n\n", nodePort)
 
 	kubeconfigBytes := kubeconfigSecret.Data["config"]
 
