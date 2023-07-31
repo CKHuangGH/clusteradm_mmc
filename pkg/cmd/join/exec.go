@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -285,6 +286,14 @@ func (o *Options) validate() error {
 	return nil
 }
 
+func RemovePortFromURL(rawURL string) string {
+	// 使用正規表達式來匹配網址中的 port 號碼部分
+	re := regexp.MustCompile(`:\d+`)
+	cleanedURL := re.ReplaceAllString(rawURL, "")
+
+	return cleanedURL
+}
+
 func (o *Options) run() error {
 	kubeClient, apiExtensionsClient, _, err := helpers.GetClients(o.ClusteradmFlags.KubectlFactory)
 	if err != nil {
@@ -431,15 +440,26 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		)
 	}
 
+	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
+	if err != nil {
+		return nil
+	}
+
+	finalURL := RemovePortFromURL(restConfig.Host)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(o.Streams.Out, " %s\n", finalURL)
+
 	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-my-vcluster", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
+
 	kubeconfigBytes := kubeconfigSecret.Data["config"]
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(kubeconfigBytes)
 
-	o.mode = "Hosted"
 	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
 	if err != nil {
 		return err
