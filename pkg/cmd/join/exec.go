@@ -49,12 +49,12 @@ const (
 	DefaultOperatorName = "klusterlet"
 )
 
-func format(s string) string {
-	if s == "" {
-		return ""
-	}
-	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
-}
+// func format(s string) string {
+// 	if s == "" {
+// 		return ""
+// 	}
+// 	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
+// }
 
 func toRFC1035DomainWithPort(urlString string) (string, error) {
 	// 解析URL
