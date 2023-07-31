@@ -145,7 +145,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 	// McKlusterletName := "klusterlet-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + rfc1035Domain
-	McNamespace := "mgmt-" + rfc1035Domain + "kluster"
+	McNamespace := "mgmt-" + rfc1035Domain + "-klusterlet"
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
@@ -513,11 +513,8 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(o.Streams.Out, " %s\n", updatedKubeconfig)
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
-
-	fmt.Fprintf(o.Streams.Out, " %s\n", o.values.ManagedKubeconfig)
 
 	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
 	if err != nil {
