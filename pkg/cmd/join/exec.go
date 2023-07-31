@@ -122,7 +122,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("the mode should not be empty, like default")
 	}
 	// convert mode string to lower
-	o.mode = format(o.mode)
+	o.mode = "Hosted"
 
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
