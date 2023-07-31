@@ -16,14 +16,6 @@ spec:
     matchLabels:
       app: vcluster
       release: my-vcluster
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 5Gi
   template:
     metadata:
       labels:
@@ -42,6 +34,8 @@ spec:
         - name: coredns
           configMap:
             name: my-vcluster-coredns
+        - name: data
+          emptyDir: {}
       containers:
       - image: rancher/k3s:v1.27.3-k3s1
         name: vcluster
