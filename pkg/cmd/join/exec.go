@@ -192,7 +192,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 			Name:                McNamespace,
 			KlusterletNamespace: McNamespace,
 
-			McKlusterletName: McKlusterletName,
+			McKlusterletName: McNamespace,
 			McNamespace:      McNamespace,
 		}
 		o.values.ManagedKubeconfig = o.managedKubeconfigFile
