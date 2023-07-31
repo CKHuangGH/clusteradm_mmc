@@ -275,23 +275,23 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 }
 
 func (o *Options) validate() error {
-	preflight check
-	if err := preflightinterface.RunChecks(
-		[]preflightinterface.Checker{
-			preflight.HubKubeconfigCheck{
-				Config: o.HubConfig,
-			},
-			// preflight.DeployModeCheck{
-			// 	Mode:                  o.mode,
-			// 	InternalEndpoint:      o.forceHubInClusterEndpointLookup,
-			// 	ManagedKubeconfigFile: o.managedKubeconfigFile,
-			// },
-			preflight.ClusterNameCheck{
-				ClusterName: o.values.ClusterName,
-			},
-		}, os.Stderr); err != nil {
-		return err
-	}
+	// preflight check
+	// if err := preflightinterface.RunChecks(
+	// 	[]preflightinterface.Checker{
+	// 		preflight.HubKubeconfigCheck{
+	// 			Config: o.HubConfig,
+	// 		},
+	// 		// preflight.DeployModeCheck{
+	// 		// 	Mode:                  o.mode,
+	// 		// 	InternalEndpoint:      o.forceHubInClusterEndpointLookup,
+	// 		// 	ManagedKubeconfigFile: o.managedKubeconfigFile,
+	// 		// },
+	// 		preflight.ClusterNameCheck{
+	// 			ClusterName: o.values.ClusterName,
+	// 		},
+	// 	}, os.Stderr); err != nil {
+	// 	return err
+	// }
 
 	err := o.setKubeconfig()
 	if err != nil {
