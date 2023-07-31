@@ -494,8 +494,10 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			break
 		}
 	}
+	nodePortStr := strconv.Itoa(int(nodePort))
 
-	fmt.Fprintf(o.Streams.Out, "%s\n\n", nodePort)
+	fullurl := withHttp + ":" + nodePortStr
+	fmt.Fprintf(o.Streams.Out, "%s\n\n", fullurl)
 
 	kubeconfigBytes := kubeconfigSecret.Data["config"]
 

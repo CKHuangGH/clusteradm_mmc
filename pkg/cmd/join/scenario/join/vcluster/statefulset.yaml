@@ -93,7 +93,7 @@ spec:
           - --kube-config-context-name=my-vcluster
           - --leader-elect=false
           - --sync=-ingressclasses
-          - --tls-san= {{ .ApiAddress }}
+          - --tls-san={{ .ApiAddress }}
         livenessProbe:
           httpGet:
             path: /healthz
