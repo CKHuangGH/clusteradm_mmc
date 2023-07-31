@@ -87,6 +87,19 @@ func toRFC1035DomainWithPort(urlString string) (string, error) {
 	return host, nil
 }
 
+func GetIPAddressFromURL(rawURL string) (string, error) {
+	// 解析網址
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	// 取得主機名稱（如果網址直接是 IP 位置，那麼主機名稱就是該 IP）
+	host := parsedURL.Hostname()
+
+	return host, nil
+}
+
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if cmd.Flags() == nil {
 		return fmt.Errorf("no flags have been set: hub-apiserver, hub-token and cluster-name is required")
@@ -117,6 +130,16 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("namespace string is wrong")
 	}
 
+	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
+	if err != nil {
+		return nil
+	}
+
+	ipAddress, err := GetIPAddressFromURL(restConfig.Host)
+	if err != nil {
+		return err
+	}
+
 	agentNamespace := AgentNamespacePrefix + "agent"
 	// McKlusterletName := "klusterlet-" + o.clusterName + "-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
@@ -134,6 +157,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		McKlusterletName: McKlusterletName,
 		McNamespace:      McNamespace,
 		Vclustermode:     "Hosted",
+		ApiAddress:       ipAddress,
 	}
 
 	if o.singleton { // deploy singleton agent
@@ -445,16 +469,24 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return nil
 	}
 
-	finalURL := RemovePortFromURL(restConfig.Host)
+	withHttp := RemovePortFromURL(restConfig.Host)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(o.Streams.Out, " %s\n", finalURL)
+
+	fmt.Fprintf(o.Streams.Out, "%s\n\n", withHttp)
 
 	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-my-vcluster", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
+
+	vclusterPortNumber, err := kubeClient.CoreV1().Services(o.values.McNamespace).Get(context.Background(), "vcluster-nodeport", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(o.Streams.Out, "%s\n\n", vclusterPortNumber)
 
 	kubeconfigBytes := kubeconfigSecret.Data["config"]
 

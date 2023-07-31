@@ -85,6 +85,8 @@ type Values struct {
 	//McNamespace
 	McNamespace string
 
+	ApiAddress string
+
 	//Features is the slice of feature for registration
 	RegistrationFeatures []operatorv1.FeatureGate
 
