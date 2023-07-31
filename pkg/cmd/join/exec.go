@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	"k8s.io/klog/v2"
 	"k8s.io/kubectl/pkg/cmd/util"
@@ -492,17 +493,33 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	fullurl := withHttp + ":" + nodePortStr
 
 	fmt.Fprintf(o.Streams.Out, " %s\n", fullurl)
+
 	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-my-vcluster", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
 	kubeconfigBytes := kubeconfigSecret.Data["config"]
-	fmt.Fprintf(o.Streams.Out, " %s\n", kubeconfigBytes)
 
-	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(kubeconfigBytes)
+	tempconfig, err := clientcmd.Load(kubeconfigBytes)
+	if err != nil {
+		return err
+	}
+
+	// 修改 server 欄位的值
+	clusterName := "my-vcluster" // 假設要修改的是名為 "cluster-1" 的 cluster
+	tempconfig.Clusters[clusterName].Server = fullurl
+
+	// 將更新後的 Config 物件轉換回 kubeconfig 的格式
+	updatedKubeconfig, err := clientcmd.Write(*tempconfig)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(o.Streams.Out, " %s\n", updatedKubeconfig)
+	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
 
 	fmt.Fprintf(o.Streams.Out, " %s\n", o.values.ManagedKubeconfig)
+
 	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
 	if err != nil {
 		return err
