@@ -56,31 +56,25 @@ const (
 // }
 
 func toRFC1035DomainWithPort(urlString string) (string, error) {
-	// 解析URL
 	parsedURL, err := url.Parse(urlString)
 	if err != nil {
 		return "", err
 	}
 
-	// 提取主機部分
 	host := parsedURL.Hostname()
 
-	// 將主機部分的點和分號替換成橫線
 	host = strings.ReplaceAll(host, ".", "-")
 	host = strings.ReplaceAll(host, ":", "-")
 
-	// 檢查Port是否為合法的數字
 	port := parsedURL.Port()
 	if port != "" {
 		portNum, err := strconv.Atoi(port)
 		if err != nil || portNum < 1 || portNum > 65535 {
 			return "", err
 		}
-		// 將Port加入主機部分
 		host = fmt.Sprintf("%s-%s", host, port)
 	}
 
-	// 確保開頭和結尾沒有橫線
 	host = strings.TrimSuffix(host, "-")
 	host = strings.TrimPrefix(host, "-")
 
@@ -88,13 +82,11 @@ func toRFC1035DomainWithPort(urlString string) (string, error) {
 }
 
 func GetIPAddressFromURL(rawURL string) (string, error) {
-	// 解析網址
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return "", err
 	}
 
-	// 取得主機名稱（如果網址直接是 IP 位置，那麼主機名稱就是該 IP）
 	host := parsedURL.Hostname()
 
 	return host, nil
@@ -140,7 +132,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	agentNamespace := AgentNamespacePrefix + "agent"
+	// agentNamespace := AgentNamespacePrefix + "agent"
 	// McKlusterletName := "klusterlet-" + o.clusterName + "-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
 	// McKlusterletName := "klusterlet-" + rfc1035Domain
@@ -173,18 +165,18 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		// In hosted mode, operatorNamespace is on the management cluster, agentNamesapce is "<cluster name>-<6-bit random string>" on the management cluster, and the klusterletNamespace is "open-cluster-management-<agentNamespace>" on the managed cluster.
 
 		// values for default mode
-		klusterletName := DefaultOperatorName
+		// klusterletName := DefaultOperatorName
 		// klusterletNamespace := agentNamespace
 
-		if o.mode == InstallModeHosted {
-			// add hash suffix to avoid conflict
-			klusterletName += "-hosted-" + helpers.RandStringRunes_az09(6)
-			agentNamespace = McNamespace
-			// klusterletNamespace = AgentNamespacePrefix + agentNamespace
+		// if o.mode == InstallModeHosted {
+		// 	// add hash suffix to avoid conflict
+		// 	klusterletName += "-hosted-" + helpers.RandStringRunes_az09(6)
+		// 	agentNamespace = McNamespace
+		// 	// klusterletNamespace = AgentNamespacePrefix + agentNamespace
 
-			// update AgentNamespace
-			o.values.AgentNamespace = agentNamespace
-		}
+		// 	// update AgentNamespace
+		// 	o.values.AgentNamespace = agentNamespace
+		// }
 
 		o.values.Klusterlet = Klusterlet{
 			Mode:                o.mode,
