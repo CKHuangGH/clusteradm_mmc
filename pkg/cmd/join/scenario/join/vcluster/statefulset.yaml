@@ -88,7 +88,7 @@ spec:
           - --leader-elect=false
           # - --sync=persistentvolumes
           # - --sync=storageclasses
-          - --sync=-ingressclasses
+          - --sync=ingresses
           - --tls-san={{ .ApiAddress }}
         livenessProbe:
           httpGet:
