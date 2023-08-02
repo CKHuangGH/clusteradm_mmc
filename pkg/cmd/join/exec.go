@@ -482,8 +482,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 
 	fullurl := withHttp + ":" + nodePortStr
 
-	fmt.Fprintf(o.Streams.Out, " %s\n", fullurl)
-
 	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-my-vcluster", metav1.GetOptions{})
 	if err != nil {
 		return err
