@@ -86,9 +86,9 @@ spec:
           - --service-account=vc-workload-my-vcluster
           - --kube-config-context-name=my-vcluster
           - --leader-elect=false
-          # - --sync=persistentvolumes
-          # - --sync=storageclasses
           - --sync=ingresses
+          - --sync=persistentvolumes
+          - --sync=storageclasses
           - --tls-san={{ .ApiAddress }}
         livenessProbe:
           httpGet:

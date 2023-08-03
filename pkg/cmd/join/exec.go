@@ -407,16 +407,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	if !available {
 		vclusterfiles = append(vclusterfiles,
 			"join/namespace.yaml",
-			"join/vcluster/serviceaccount.yaml",
-			"join/vcluster/workloadserviceaccount.yaml",
-			"join/vcluster/coredns.yaml",
-			"join/vcluster/init-configmap.yaml",
-			"join/vcluster/role.yaml",
-			"join/vcluster/rolebinding.yaml",
-			"join/vcluster/service.yaml",
-			"join/vcluster/statefulset-service.yaml",
-			"join/vcluster/statefulset.yaml",
-			"join/vcluster/statefulset-service-export.yaml",
+			"join/vcluster/all-in-one.yaml",
 		)
 		klusterletfiles = append(klusterletfiles,
 			"join/klusterlets.crd.yaml",
