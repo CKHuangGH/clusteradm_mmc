@@ -172,13 +172,6 @@ data:
                 - containerPort: 9153
                   name: metrics
                   protocol: TCP
-              securityContext:
-                runAsNonRoot: true
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                readOnlyRootFilesystem: true
               livenessProbe:
                 httpGet:
                   path: /health
