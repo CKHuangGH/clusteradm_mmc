@@ -502,6 +502,7 @@ spec:
           - --sync=ingresses
           - --sync=persistentvolumes
           - --sync=storageclasses
+          - --tls-san={{ .ApiAddress }}
         livenessProbe:
           httpGet:
             path: /healthz
