@@ -138,6 +138,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	// McKlusterletName := "klusterlet-" + rfc1035Domain
 	// McNamespace := o.clusterName + "-" + rfc1035Domain
 	McNamespace := "mgmt-" + rfc1035Domain + "-klusterlet"
+	vccr := "vccr-" + rfc1035Domain
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
@@ -149,6 +150,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		McKlusterletName: McNamespace,
 		McNamespace:      McNamespace,
 		ApiAddress:       ipAddress,
+		Vccr:             vccr,
 	}
 
 	if o.singleton { // deploy singleton agent
