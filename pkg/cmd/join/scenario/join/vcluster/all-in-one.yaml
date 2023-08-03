@@ -256,7 +256,6 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: vc-vcluster-v-vcluster-my-vcluster
-  namespace: {{ .McNamespace }}
   labels:
     app: vcluster
     chart: "vcluster-0.15.2"
