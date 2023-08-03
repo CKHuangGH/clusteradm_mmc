@@ -379,7 +379,7 @@ metadata:
 spec:
   selector:
     app: vcluster
-    release: my-vcluster
+    release: vcluster
   ports:
     - name: https
       port: 443
