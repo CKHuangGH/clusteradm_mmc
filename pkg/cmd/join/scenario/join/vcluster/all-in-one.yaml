@@ -378,7 +378,7 @@ spec:
     - name: https
       port: 443
       targetPort: 8443
-      nodePort: 30950 #use for kind env. Please remove it when deploy in g5k vm
+      # nodePort: 30950 #use for kind env. Please remove it when deploy in g5k vm
       protocol: TCP
   type: NodePort
 ---
