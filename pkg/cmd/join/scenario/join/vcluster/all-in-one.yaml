@@ -286,9 +286,6 @@ subjects:
   - kind: ServiceAccount
     name: vc-vcluster
     namespace: {{ .McNamespace }}
-  - kind: ServiceAccount
-    name: {{ .Pvsawa }}
-    namespace: {{ .McNamespace }}
 roleRef:
   kind: ClusterRole
   name: vc-vcluster-v-vcluster-my-vcluster
