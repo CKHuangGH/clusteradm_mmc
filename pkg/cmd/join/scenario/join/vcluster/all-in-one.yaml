@@ -287,7 +287,7 @@ subjects:
     name: vc-vcluster
     namespace: {{ .McNamespace }}
   - kind: ServiceAccount
-    name: {{ .pvsawa }}
+    name: {{ .Pvsawa }}
     namespace: {{ .McNamespace }}
 roleRef:
   kind: ClusterRole
