@@ -284,11 +284,11 @@ metadata:
     heritage: "Helm"
 subjects:
   - kind: ServiceAccount
-    name: vc-workload-vcluster
+    name: vc-vcluster
     namespace: {{ .McNamespace }}
-  # - kind: ServiceAccount
-  #   name: vc-workload-vcluster
-  #   namespace: {{ .McNamespace }}
+  - kind: ServiceAccount
+    name: {{ .pvsawa }}
+    namespace: {{ .McNamespace }}
 roleRef:
   kind: ClusterRole
   name: vc-vcluster-v-vcluster-my-vcluster

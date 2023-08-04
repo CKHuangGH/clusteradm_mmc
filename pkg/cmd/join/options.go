@@ -77,6 +77,8 @@ type Values struct {
 	//managed kubeconfig
 	ManagedKubeconfig string
 
+	pvsawa string
+
 	//McKlusterletName
 	McKlusterletName string
 

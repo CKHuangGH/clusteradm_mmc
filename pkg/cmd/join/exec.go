@@ -151,6 +151,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		McNamespace:      McNamespace,
 		ApiAddress:       ipAddress,
 		Vccr:             vccr,
+		pvsawa:           McNamespace + "-work-sa",
 	}
 
 	if o.singleton { // deploy singleton agent
