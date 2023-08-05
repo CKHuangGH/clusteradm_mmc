@@ -519,7 +519,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 			"join/multi-mgt/service_account.yaml",
 			"join/multi-mgt/cluster_role.yaml",
 			"join/multi-mgt/cluster_role_binding.yaml",
-			"join/multi-mgt/vcluster_kubeconfig.yaml",
+			"join/multi-mgt/external_managed_kubeconfig.yaml",
 		)
 	}
 	if !availableVcluster {
@@ -601,7 +601,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 	}
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
-
+	fmt.Fprintf(o.Streams.Out, "%s\n\n", o.values.ManagedKubeconfig)
 	err = r.Apply(scenario.Files, o.values, files...)
 	if err != nil {
 		return err
