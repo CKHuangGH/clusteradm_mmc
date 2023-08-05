@@ -336,7 +336,27 @@ func (o *Options) run() error {
 				return err
 			}
 		}
+	} else {
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), o.values.MultiMgtName, metav1.GetOptions{})
+		if err != nil {
+			if errors.IsNotFound(err) {
+				_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: o.values.MultiMgtName,
+						Annotations: map[string]string{
+							"workload.openshift.io/allowed": "management",
+						},
+					},
+				}, metav1.CreateOptions{})
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
 	}
+
 	if o.singleton {
 		err = o.applySingletonAgent(r, kubeClient)
 		if err != nil {
@@ -511,11 +531,12 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		"join/multi-mgt/bootstrap_hub_kubeconfig.yaml",
 	)
 
-	err = r.Apply(scenario.Files, o.values, vclusterfile...)
-	if err != nil {
-		return err
+	if !availableVcluster {
+		err = r.Apply(scenario.Files, o.values, vclusterfile...)
+		if err != nil {
+			return err
+		}
 	}
-
 	fmt.Fprintf(o.Streams.Out, "%s", "3")
 	if o.wait && !o.ClusteradmFlags.DryRun {
 		err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), o.values.MultiMgtName)
