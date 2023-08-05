@@ -2,12 +2,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: klusterlet
+  name: {{ .MultiMgtName }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: klusterlet
+  name: {{ .MultiMgtName }}
 subjects:
 - kind: ServiceAccount
-  name: klusterlet
-  namespace: open-cluster-management 
+  name: {{ .MultiMgtName }}
+  namespace: {{ .MultiMgtName }}

@@ -74,25 +74,20 @@ type Values struct {
 	Registry string
 	//bundle version
 	BundleVersion BundleVersion
-	//managed kubeconfig
+	// managed kubeconfig
 	ManagedKubeconfig string
 
-	//McKlusterletName
-	McKlusterletName string
-
-	Vccr string
-
-	Mcworksa string
-
-	//McNamespace
-	McNamespace string
+	//McName
+	MultiMgtName string
 
 	ApiAddress string
 
-	//Features is the slice of feature for registration
+	Vclustercr string
+
+	// Features is the slice of feature for registration
 	RegistrationFeatures []operatorv1.FeatureGate
 
-	//Features is the slice of feature for work
+	// Features is the slice of feature for work
 	WorkFeatures []operatorv1.FeatureGate
 }
 
@@ -111,8 +106,6 @@ type Klusterlet struct {
 	Mode                string
 	Name                string
 	KlusterletNamespace string
-	McKlusterletName    string
-	McNamespace         string
 }
 
 type BundleVersion struct {

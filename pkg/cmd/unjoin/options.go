@@ -16,9 +16,8 @@ type Options struct {
 	//Delete the operator by default
 	purgeOperator bool
 	//The file to output the resources will be sent to the file.
-	outputFile     string
-	values         Values
-	managedCluster string
+	outputFile string
+	values     Values
 
 	Streams genericclioptions.IOStreams
 }
@@ -29,12 +28,6 @@ type Values struct {
 	DeployMode     operatorv1.InstallMode
 	KlusterletName string
 	AgentNamespace string
-
-	//McKlusterletName
-	McKlusterletName string
-
-	//McNamespace
-	McNamespace string
 }
 
 func newOptions(clusteradmFlags *genericclioptionsclusteradm.ClusteradmFlags, streams genericclioptions.IOStreams) *Options {

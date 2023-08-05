@@ -32,6 +32,7 @@ import (
 	"open-cluster-management.io/clusteradm/pkg/cmd/join/scenario"
 	genericclioptionsclusteradm "open-cluster-management.io/clusteradm/pkg/genericclioptions"
 	"open-cluster-management.io/clusteradm/pkg/helpers"
+	preflightinterface "open-cluster-management.io/clusteradm/pkg/helpers/preflight"
 	"open-cluster-management.io/clusteradm/pkg/helpers/printer"
 	"open-cluster-management.io/clusteradm/pkg/helpers/reader"
 	"open-cluster-management.io/clusteradm/pkg/helpers/version"
@@ -41,19 +42,13 @@ import (
 const (
 	AgentNamespacePrefix = "open-cluster-management-"
 
-	InstallModeDefault = "Default"
-	InstallModeHosted  = "Hosted"
+	InstallModeDefault  = "Default"
+	InstallModeHosted   = "Hosted"
+	InstallModeMultiMgt = "Multi-mgt"
 
 	OperatorNamesapce   = "open-cluster-management"
 	DefaultOperatorName = "klusterlet"
 )
-
-// func format(s string) string {
-// 	if s == "" {
-// 		return ""
-// 	}
-// 	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
-// }
 
 func toRFC1035DomainWithPort(urlString string) (string, error) {
 	parsedURL, err := url.Parse(urlString)
@@ -92,10 +87,18 @@ func GetIPAddressFromURL(rawURL string) (string, error) {
 	return host, nil
 }
 
+func format(s string) string {
+	if s == "" {
+		return ""
+	}
+	return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
+}
+
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if cmd.Flags() == nil {
 		return fmt.Errorf("no flags have been set: hub-apiserver, hub-token and cluster-name is required")
 	}
+
 	if o.token == "" {
 		return fmt.Errorf("token is missing")
 	}
@@ -108,18 +111,21 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if len(o.registry) == 0 {
 		return fmt.Errorf("the OCM image registry should not be empty, like quay.io/open-cluster-management")
 	}
+	if len(o.registry) == 0 {
+		return fmt.Errorf("the OCM image registry should not be empty, like quay.io/open-cluster-management")
+	}
 
 	if len(o.mode) == 0 {
 		return fmt.Errorf("the mode should not be empty, like default")
 	}
 	// convert mode string to lower
-	o.mode = "Hosted"
+	o.mode = format(o.mode)
 
 	klog.V(1).InfoS("join options:", "dry-run", o.ClusteradmFlags.DryRun, "cluster", o.clusterName, "api-server", o.hubAPIServer, "output", o.outputFile)
 
 	rfc1035Domain, domainerr := toRFC1035DomainWithPort(o.hubAPIServer)
 	if domainerr != nil {
-		return fmt.Errorf("namespace string is wrong")
+		return fmt.Errorf("domain string is wrong")
 	}
 
 	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
@@ -132,27 +138,21 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	// agentNamespace := AgentNamespacePrefix + "agent"
-	// McKlusterletName := "klusterlet-" + o.clusterName + "-" + rfc1035Domain
-	// McNamespace := o.clusterName + "-" + helpers.RandStringRunes_az09(6)
-	// McKlusterletName := "klusterlet-" + rfc1035Domain
-	// McNamespace := o.clusterName + "-" + rfc1035Domain
-	McNamespace := "mgmt-" + rfc1035Domain + "-klusterlet"
-	vccr := "vccr-" + rfc1035Domain
-	Mcworksa := McNamespace + "-work-sa"
+	MultiMgtName := "mgt-" + rfc1035Domain + "-klusterlet"
+	vclustercr := "vccr-" + rfc1035Domain
+	agentNamespace := AgentNamespacePrefix + "agent"
+
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
 			APIServer: o.hubAPIServer,
 		},
 		Registry:       o.registry,
-		AgentNamespace: McNamespace,
-
-		McKlusterletName: McNamespace,
-		McNamespace:      McNamespace,
-		ApiAddress:       ipAddress,
-		Vccr:             vccr,
-		Mcworksa:         Mcworksa,
+		AgentNamespace: agentNamespace,
+		//multi-mgt
+		MultiMgtName: MultiMgtName,
+		ApiAddress:   ipAddress,
+		Vclustercr:   vclustercr,
 	}
 
 	if o.singleton { // deploy singleton agent
@@ -169,26 +169,22 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		// In hosted mode, operatorNamespace is on the management cluster, agentNamesapce is "<cluster name>-<6-bit random string>" on the management cluster, and the klusterletNamespace is "open-cluster-management-<agentNamespace>" on the managed cluster.
 
 		// values for default mode
-		// klusterletName := DefaultOperatorName
-		// klusterletNamespace := agentNamespace
+		klusterletName := DefaultOperatorName
+		klusterletNamespace := agentNamespace
+		if o.mode == InstallModeHosted {
+			// add hash suffix to avoid conflict
+			klusterletName += "-hosted-" + helpers.RandStringRunes_az09(6)
+			agentNamespace = klusterletName
+			klusterletNamespace = AgentNamespacePrefix + agentNamespace
 
-		// if o.mode == InstallModeHosted {
-		// 	// add hash suffix to avoid conflict
-		// 	klusterletName += "-hosted-" + helpers.RandStringRunes_az09(6)
-		// 	agentNamespace = McNamespace
-		// 	// klusterletNamespace = AgentNamespacePrefix + agentNamespace
-
-		// 	// update AgentNamespace
-		// 	o.values.AgentNamespace = agentNamespace
-		// }
+			// update AgentNamespace
+			o.values.AgentNamespace = agentNamespace
+		}
 
 		o.values.Klusterlet = Klusterlet{
 			Mode:                o.mode,
-			Name:                McNamespace,
-			KlusterletNamespace: McNamespace,
-
-			McKlusterletName: McNamespace,
-			McNamespace:      McNamespace,
+			Name:                klusterletName,
+			KlusterletNamespace: klusterletNamespace,
 		}
 		o.values.ManagedKubeconfig = o.managedKubeconfigFile
 		o.values.RegistrationFeatures = genericclioptionsclusteradm.ConvertToFeatureGateAPI(genericclioptionsclusteradm.SpokeMutableFeatureGate, ocmfeature.DefaultSpokeRegistrationFeatureGates)
@@ -266,27 +262,26 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		"hubAPIServer", o.values.Hub.APIServer,
 		"klusterletAPIServer", o.values.Klusterlet.APIServer)
 	return nil
-
 }
 
 func (o *Options) validate() error {
 	// preflight check
-	// if err := preflightinterface.RunChecks(
-	// 	[]preflightinterface.Checker{
-	// 		preflight.HubKubeconfigCheck{
-	// 			Config: o.HubConfig,
-	// 		},
-	// 		// preflight.DeployModeCheck{
-	// 		// 	Mode:                  o.mode,
-	// 		// 	InternalEndpoint:      o.forceHubInClusterEndpointLookup,
-	// 		// 	ManagedKubeconfigFile: o.managedKubeconfigFile,
-	// 		// },
-	// 		preflight.ClusterNameCheck{
-	// 			ClusterName: o.values.ClusterName,
-	// 		},
-	// 	}, os.Stderr); err != nil {
-	// 	return err
-	// }
+	if err := preflightinterface.RunChecks(
+		[]preflightinterface.Checker{
+			preflight.HubKubeconfigCheck{
+				Config: o.HubConfig,
+			},
+			preflight.DeployModeCheck{
+				Mode:                  o.mode,
+				InternalEndpoint:      o.forceHubInClusterEndpointLookup,
+				ManagedKubeconfigFile: o.managedKubeconfigFile,
+			},
+			preflight.ClusterNameCheck{
+				ClusterName: o.values.ClusterName,
+			},
+		}, os.Stderr); err != nil {
+		return err
+	}
 
 	err := o.setKubeconfig()
 	if err != nil {
@@ -294,13 +289,13 @@ func (o *Options) validate() error {
 	}
 
 	// get ManagedKubeconfig from given file
-	// if o.mode == InstallModeHosted {
-	// 	managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
-	// }
+	if o.mode == InstallModeHosted {
+		managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
+		if err != nil {
+			return err
+		}
+		o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
+	}
 
 	return nil
 }
@@ -321,27 +316,33 @@ func (o *Options) run() error {
 
 	r := reader.NewResourceReader(o.builder, o.ClusteradmFlags.DryRun, o.Streams)
 
-	// _, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), o.values.AgentNamespace, metav1.GetOptions{})
-	// if err != nil {
-	// 	if errors.IsNotFound(err) {
-	// 		_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
-	// 			ObjectMeta: metav1.ObjectMeta{
-	// 				Name: o.values.AgentNamespace,
-	// 				Annotations: map[string]string{
-	// 					"workload.openshift.io/allowed": "management",
-	// 				},
-	// 			},
-	// 		}, metav1.CreateOptions{})
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 	} else {
-	// 		return err
-	// 	}
-	// }
-
+	if o.mode != InstallModeMultiMgt {
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), o.values.AgentNamespace, metav1.GetOptions{})
+		if err != nil {
+			if errors.IsNotFound(err) {
+				_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: o.values.AgentNamespace,
+						Annotations: map[string]string{
+							"workload.openshift.io/allowed": "management",
+						},
+					},
+				}, metav1.CreateOptions{})
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+	}
 	if o.singleton {
 		err = o.applySingletonAgent(r, kubeClient)
+		if err != nil {
+			return err
+		}
+	} else if o.mode == InstallModeMultiMgt {
+		err = o.applyMultiMgt(r, kubeClient, apiExtensionsClient)
 		if err != nil {
 			return err
 		}
@@ -399,43 +400,35 @@ func (o *Options) applySingletonAgent(r *reader.ResourceReader, kubeClient kuber
 }
 
 func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernetes.Interface, apiExtensionsClient apiextensionsclient.Interface) error {
-	checkmcnamespace := o.values.McNamespace
-	available, err := checkIfRegistrationOperatorAvailable(o.ClusteradmFlags.KubectlFactory, checkmcnamespace)
+
+	available, err := checkIfRegistrationOperatorAvailable(o.ClusteradmFlags.KubectlFactory, OperatorNamesapce, DefaultOperatorName)
 	if err != nil {
 		return err
 	}
-
-	klusterletfiles := []string{}
-	vclusterfiles := []string{}
+	files := []string{}
 	// If Deployment/klusterlet is not deployed, deploy it
 	if !available {
-		vclusterfiles = append(vclusterfiles,
-			"join/namespace.yaml",
-			"join/vcluster/all-in-one.yaml",
-		)
-		klusterletfiles = append(klusterletfiles,
+		files = append(files,
 			"join/klusterlets.crd.yaml",
+			"join/namespace.yaml",
 			"join/service_account.yaml",
-			"join/service_account_work_agent.yaml",
 			"join/cluster_role.yaml",
 			"join/cluster_role_binding.yaml",
-			"join/vcluster_kubeconfig.yaml",
 		)
 	}
-	klusterletfiles = append(klusterletfiles,
+	files = append(files,
 		"bootstrap_hub_kubeconfig.yaml",
 	)
 
-	err = r.Apply(scenario.Files, o.values, vclusterfiles...)
-	if err != nil {
-		return err
+	if o.mode == InstallModeHosted {
+		files = append(files,
+			"join/hosted/external_managed_kubeconfig.yaml",
+		)
 	}
 
-	if o.wait && !o.ClusteradmFlags.DryRun {
-		err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
-		if err != nil {
-			return err
-		}
+	err = r.Apply(scenario.Files, o.values, files...)
+	if err != nil {
+		return err
 	}
 
 	if !available {
@@ -443,68 +436,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		if err != nil {
 			return err
 		}
-	}
-
-	// if o.mode == InstallModeHosted {
-	// 	klusterletfiles = append(klusterletfiles,
-	// 		"join/hosted/external_managed_kubeconfig.yaml",
-	// 	)
-	// }
-
-	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
-	if err != nil {
-		return nil
-	}
-
-	withHttp := RemovePortFromURL(restConfig.Host)
-	if err != nil {
-		return err
-	}
-
-	vclusterPortNumber, err := kubeClient.CoreV1().Services(o.values.McNamespace).Get(context.Background(), "vcluster-nodeport", metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	// 獲取 NodePort
-	var nodePort int32
-	for _, port := range vclusterPortNumber.Spec.Ports {
-		if port.NodePort != 0 {
-			nodePort = port.NodePort
-			break
-		}
-	}
-	nodePortStr := strconv.Itoa(int(nodePort))
-
-	fullurl := withHttp + ":" + nodePortStr
-
-	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.McNamespace).Get(context.Background(), "vc-vcluster", metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	kubeconfigBytes := kubeconfigSecret.Data["config"]
-
-	tempconfig, err := clientcmd.Load(kubeconfigBytes)
-	if err != nil {
-		return err
-	}
-
-	// 修改 server 欄位的值
-	clusterName := "my-vcluster" // 假設要修改的是名為 "cluster-1" 的 cluster
-	tempconfig.Clusters[clusterName].Server = fullurl
-
-	// 將更新後的 Config 物件轉換回 kubeconfig 的格式
-	updatedKubeconfig, err := clientcmd.Write(*tempconfig)
-	if err != nil {
-		return err
-	}
-
-	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
-
-	err = r.Apply(scenario.Files, o.values, klusterletfiles...)
-	if err != nil {
-		return err
 	}
 
 	if !o.ClusteradmFlags.DryRun {
@@ -518,29 +449,164 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return err
 	}
 
-	// klusterletNamespace := o.values.Klusterlet.KlusterletNamespace
-	// agentNamespace := o.values.AgentNamespace
+	klusterletNamespace := o.values.Klusterlet.KlusterletNamespace
+	agentNamespace := o.values.AgentNamespace
 
 	if !available && o.wait && !o.ClusteradmFlags.DryRun {
-		err = waitUntilRegistrationOperatorConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
+		err = waitUntilRegistrationOperatorConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout))
 		if err != nil {
 			return err
 		}
 	}
 
 	if o.wait && !o.ClusteradmFlags.DryRun {
-		// if o.mode == InstallModeHosted {
-		// 	err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), agentNamespace)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// } else {
-		// 	err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
-		err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), checkmcnamespace)
+		if o.mode == InstallModeHosted {
+			err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), agentNamespace)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), klusterletNamespace)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.Interface, apiExtensionsClient apiextensionsclient.Interface) error {
+
+	o.mode = "Hosted"
+	o.values.Klusterlet.Mode = "Hosted"
+
+	available, err := checkIfRegistrationOperatorAvailable(o.ClusteradmFlags.KubectlFactory, o.values.MultiMgtName, o.values.MultiMgtName)
+	if err != nil {
+		return err
+	}
+
+	availableVcluster, err := checkIfVclusterAvailable(o.ClusteradmFlags.KubectlFactory, o.values.MultiMgtName, o.values.MultiMgtName)
+	if err != nil {
+		return err
+	}
+
+	files := []string{}
+	vclusterfile := []string{}
+	// If Deployment/klusterlet is not deployed, deploy it
+	if !available {
+		files = append(files,
+			"join/multi-mgt/klusterlets.crd.yaml",
+			"join/multi-mgt/service_account.yaml",
+			"join/multi-mgt/cluster_role.yaml",
+			"join/multi-mgt/cluster_role_binding.yaml",
+			"join/multi-mgt/vcluster_kubeconfig.yaml",
+		)
+	}
+	if !availableVcluster {
+		vclusterfile = append(files,
+			"join/multi-mgt/namespace.yaml",
+			"join/multi-mgt/vcluster/all-in-one.yaml",
+		)
+	}
+
+	files = append(files,
+		"join/multi-mgt/bootstrap_hub_kubeconfig.yaml",
+	)
+
+	if !availableVcluster {
+		err = r.Apply(scenario.Files, o.values, vclusterfile...)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !o.ClusteradmFlags.DryRun {
+		err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), o.values.MultiMgtName)
+		if err != nil {
+			return err
+		}
+	}
+
+	///get vcluster secret and set the config
+	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
+	if err != nil {
+		return nil
+	}
+
+	withHttp := RemovePortFromURL(restConfig.Host)
+	if err != nil {
+		return err
+	}
+
+	vclusterPortNumber, err := kubeClient.CoreV1().Services(o.values.MultiMgtName).Get(context.Background(), "vcluster-nodeport", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	var nodePort int32
+	for _, port := range vclusterPortNumber.Spec.Ports {
+		if port.NodePort != 0 {
+			nodePort = port.NodePort
+			break
+		}
+	}
+	nodePortStr := strconv.Itoa(int(nodePort))
+
+	fullurl := withHttp + ":" + nodePortStr
+
+	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.MultiMgtName).Get(context.Background(), "vc-vcluster", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	kubeconfigBytes := kubeconfigSecret.Data["config"]
+
+	tempconfig, err := clientcmd.Load(kubeconfigBytes)
+	if err != nil {
+		return err
+	}
+	///change server ip address
+	clusterName := "my-vcluster"
+	tempconfig.Clusters[clusterName].Server = fullurl
+
+	updatedKubeconfig, err := clientcmd.Write(*tempconfig)
+	if err != nil {
+		return err
+	}
+
+	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
+
+	err = r.Apply(scenario.Files, o.values, files...)
+	if err != nil {
+		return err
+	}
+
+	if !available {
+		err = r.Apply(scenario.Files, o.values, "join/operator.yaml")
+		if err != nil {
+			return err
+		}
+	}
+
+	if !o.ClusteradmFlags.DryRun {
+		if err := wait.WaitUntilCRDReady(apiExtensionsClient, "klusterlets.operator.open-cluster-management.io", o.wait); err != nil {
+			return err
+		}
+	}
+
+	err = r.Apply(scenario.Files, o.values, "join/klusterlets.cr.yaml")
+	if err != nil {
+		return err
+	}
+
+	if !available && !o.ClusteradmFlags.DryRun {
+		err = waitUntilRegistrationOperatorConditionIsTrueInMultiMgt(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), o.values.MultiMgtName)
+		if err != nil {
+			return err
+		}
+	}
+	if !o.ClusteradmFlags.DryRun {
+		err = waitUntilKlusterletConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), o.values.MultiMgtName)
 		if err != nil {
 			return err
 		}
@@ -548,7 +614,53 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	return nil
 }
 
-func checkIfRegistrationOperatorAvailable(f util.Factory, checkmcnamespace string) (bool, error) {
+func waitUntilVclusterConditionIsTrue(f util.Factory, timeout int64, checkNamespace string) error {
+	client, err := f.KubernetesClientSet()
+	if err != nil {
+		return err
+	}
+
+	phase := &atomic.Value{}
+	phase.Store("")
+	klusterletSpinner := printer.NewSpinnerWithStatus(
+		"Waiting for vcluster to become ready...",
+		time.Millisecond*500,
+		"vcluster is now available.\n",
+		func() string {
+			return phase.Load().(string)
+		})
+	klusterletSpinner.Start()
+	defer klusterletSpinner.Stop()
+
+	return helpers.WatchUntil(
+		func() (watch.Interface, error) {
+			return client.CoreV1().Pods(checkNamespace).
+				Watch(context.TODO(), metav1.ListOptions{
+					TimeoutSeconds: &timeout,
+					LabelSelector:  "app=vcluster",
+				})
+		},
+		func(event watch.Event) bool {
+			pod, ok := event.Object.(*corev1.Pod)
+			if !ok {
+				return false
+			}
+			phase.Store(printer.GetSpinnerPodStatus(pod))
+			conds := make([]metav1.Condition, len(pod.Status.Conditions))
+			for i := range pod.Status.Conditions {
+				conds[i] = metav1.Condition{
+					Type:    string(pod.Status.Conditions[i].Type),
+					Status:  metav1.ConditionStatus(pod.Status.Conditions[i].Status),
+					Reason:  pod.Status.Conditions[i].Reason,
+					Message: pod.Status.Conditions[i].Message,
+				}
+			}
+			return meta.IsStatusConditionTrue(conds, "Ready")
+		},
+	)
+}
+
+func checkIfRegistrationOperatorAvailable(f util.Factory, checkNamespace string, operatorName string) (bool, error) {
 	var restConfig *rest.Config
 	restConfig, err := f.ToRESTConfig()
 	if err != nil {
@@ -559,8 +671,8 @@ func checkIfRegistrationOperatorAvailable(f util.Factory, checkmcnamespace strin
 		return false, err
 	}
 
-	deploy, err := client.AppsV1().Deployments(checkmcnamespace).
-		Get(context.TODO(), DefaultOperatorName, metav1.GetOptions{})
+	deploy, err := client.AppsV1().Deployments(checkNamespace).
+		Get(context.TODO(), operatorName, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -580,7 +692,39 @@ func checkIfRegistrationOperatorAvailable(f util.Factory, checkmcnamespace strin
 	return meta.IsStatusConditionTrue(conds, "Available"), nil
 }
 
-func waitUntilRegistrationOperatorConditionIsTrue(f util.Factory, timeout int64, checkmcnamespace string) error {
+func checkIfVclusterAvailable(f util.Factory, checkNamespace string, operatorName string) (bool, error) {
+	var restConfig *rest.Config
+	restConfig, err := f.ToRESTConfig()
+	if err != nil {
+		return false, err
+	}
+	client, err := kubernetes.NewForConfig(restConfig)
+	if err != nil {
+		return false, err
+	}
+
+	deploy, err := client.AppsV1().Deployments(checkNamespace).
+		Get(context.TODO(), operatorName, metav1.GetOptions{})
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	conds := make([]metav1.Condition, len(deploy.Status.Conditions))
+	for i := range deploy.Status.Conditions {
+		conds[i] = metav1.Condition{
+			Type:    string(deploy.Status.Conditions[i].Type),
+			Status:  metav1.ConditionStatus(deploy.Status.Conditions[i].Status),
+			Reason:  deploy.Status.Conditions[i].Reason,
+			Message: deploy.Status.Conditions[i].Message,
+		}
+	}
+	return meta.IsStatusConditionTrue(conds, "Available"), nil
+}
+
+func waitUntilRegistrationOperatorConditionIsTrueInMultiMgt(f util.Factory, timeout int64, checkmcnamespace string) error {
 	var restConfig *rest.Config
 	restConfig, err := f.ToRESTConfig()
 	if err != nil {
@@ -630,6 +774,56 @@ func waitUntilRegistrationOperatorConditionIsTrue(f util.Factory, timeout int64,
 		})
 }
 
+func waitUntilRegistrationOperatorConditionIsTrue(f util.Factory, timeout int64) error {
+	var restConfig *rest.Config
+	restConfig, err := f.ToRESTConfig()
+	if err != nil {
+		return err
+	}
+	client, err := kubernetes.NewForConfig(restConfig)
+	if err != nil {
+		return err
+	}
+
+	phase := &atomic.Value{}
+	phase.Store("")
+	operatorSpinner := printer.NewSpinnerWithStatus(
+		"Waiting for registration operator to become ready...",
+		time.Millisecond*500,
+		"Registration operator is now available.\n",
+		func() string {
+			return phase.Load().(string)
+		})
+	operatorSpinner.Start()
+	defer operatorSpinner.Stop()
+
+	return helpers.WatchUntil(
+		func() (watch.Interface, error) {
+			return client.CoreV1().Pods(OperatorNamesapce).
+				Watch(context.TODO(), metav1.ListOptions{
+					TimeoutSeconds: &timeout,
+					LabelSelector:  "app=klusterlet",
+				})
+		},
+		func(event watch.Event) bool {
+			pod, ok := event.Object.(*corev1.Pod)
+			if !ok {
+				return false
+			}
+			phase.Store(printer.GetSpinnerPodStatus(pod))
+			conds := make([]metav1.Condition, len(pod.Status.Conditions))
+			for i := range pod.Status.Conditions {
+				conds[i] = metav1.Condition{
+					Type:    string(pod.Status.Conditions[i].Type),
+					Status:  metav1.ConditionStatus(pod.Status.Conditions[i].Status),
+					Reason:  pod.Status.Conditions[i].Reason,
+					Message: pod.Status.Conditions[i].Message,
+				}
+			}
+			return meta.IsStatusConditionTrue(conds, "Ready")
+		})
+}
+
 // Wait until the klusterlet condition available=true, or timeout in $timeout seconds
 func waitUntilKlusterletConditionIsTrue(f util.Factory, timeout int64, agentNamespace string) error {
 	client, err := f.KubernetesClientSet()
@@ -655,52 +849,6 @@ func waitUntilKlusterletConditionIsTrue(f util.Factory, timeout int64, agentName
 				Watch(context.TODO(), metav1.ListOptions{
 					TimeoutSeconds: &timeout,
 					LabelSelector:  "app=klusterlet-registration-agent",
-				})
-		},
-		func(event watch.Event) bool {
-			pod, ok := event.Object.(*corev1.Pod)
-			if !ok {
-				return false
-			}
-			phase.Store(printer.GetSpinnerPodStatus(pod))
-			conds := make([]metav1.Condition, len(pod.Status.Conditions))
-			for i := range pod.Status.Conditions {
-				conds[i] = metav1.Condition{
-					Type:    string(pod.Status.Conditions[i].Type),
-					Status:  metav1.ConditionStatus(pod.Status.Conditions[i].Status),
-					Reason:  pod.Status.Conditions[i].Reason,
-					Message: pod.Status.Conditions[i].Message,
-				}
-			}
-			return meta.IsStatusConditionTrue(conds, "Ready")
-		},
-	)
-}
-
-func waitUntilVclusterConditionIsTrue(f util.Factory, timeout int64, agentNamespace string) error {
-	client, err := f.KubernetesClientSet()
-	if err != nil {
-		return err
-	}
-
-	phase := &atomic.Value{}
-	phase.Store("")
-	klusterletSpinner := printer.NewSpinnerWithStatus(
-		"Waiting for vcluster to become ready...",
-		time.Millisecond*500,
-		"vcluster is now available.\n",
-		func() string {
-			return phase.Load().(string)
-		})
-	klusterletSpinner.Start()
-	defer klusterletSpinner.Stop()
-
-	return helpers.WatchUntil(
-		func() (watch.Interface, error) {
-			return client.CoreV1().Pods(agentNamespace).
-				Watch(context.TODO(), metav1.ListOptions{
-					TimeoutSeconds: &timeout,
-					LabelSelector:  "app=vcluster",
 				})
 		},
 		func(event watch.Event) bool {

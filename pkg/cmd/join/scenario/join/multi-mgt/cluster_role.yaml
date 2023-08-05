@@ -3,7 +3,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: klusterlet
+  name: {{ .MultiMgtName }}
 rules:
 # Allow the registration-operator to create workload
 - apiGroups: [""]
@@ -48,3 +48,9 @@ rules:
 - apiGroups: ["work.open-cluster-management.io"]
   resources: ["appliedmanifestworks"]
   verbs: ["list", "update", "patch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingressclasses"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]

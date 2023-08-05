@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	InstallModeDefault = "Default"
-	InstallModeHosted  = "Hosted"
+	InstallModeDefault  = "Default"
+	InstallModeHosted   = "Hosted"
+	InstallModeMultiMgt = "Multi-mgt"
 )
 
 type HubKubeconfigCheck struct {
@@ -63,8 +64,8 @@ type DeployModeCheck struct {
 }
 
 func (c DeployModeCheck) Check() (warningList []string, errorList []error) {
-	if c.Mode != InstallModeDefault && c.Mode != InstallModeHosted {
-		return nil, []error{errors.New("deploy mode should be default or hosted")}
+	if c.Mode != InstallModeDefault && c.Mode != InstallModeHosted && c.Mode != InstallModeMultiMgt {
+		return nil, []error{errors.New("deploy mode should be default, hosted or multi-mgt")}
 	}
 	if c.Mode == InstallModeDefault {
 		if c.ManagedKubeconfigFile != "" {

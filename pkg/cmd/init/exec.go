@@ -279,7 +279,7 @@ func (o *Options) run() error {
 		} else {
 			fmt.Fprintf(o.Streams.Out, "The multicluster hub control plane has been initialized successfully!\n\n"+
 				"You can now register cluster(s) to the hub control plane. Log onto those cluster(s) and run the following command:\n\n"+
-				"    %s --cluster-name <cluster_name>\n\n"+
+				"    %s -- mode multi-mgt --cluster-name <cluster_name>\n\n"+
 				"Replace <cluster_name> with a cluster name of your choice. For example, cluster1.\n\n",
 				cmd,
 			)
