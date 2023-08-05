@@ -484,7 +484,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		return err
 	}
 
-	availableVcluster, err := checkIfVclusterAvailable(o.ClusteradmFlags.KubectlFactory, o.values.MultiMgtName, o.values.MultiMgtName)
+	availableVcluster, err := checkIfVclusterAvailable(o.ClusteradmFlags.KubectlFactory, o.values.MultiMgtName, "vcluster")
 	if err != nil {
 		return err
 	}
@@ -705,7 +705,7 @@ func checkIfVclusterAvailable(f util.Factory, checkNamespace string, operatorNam
 		return false, err
 	}
 
-	deploy, err := client.AppsV1().Deployments(checkNamespace).
+	deploy, err := client.AppsV1().StatefulSets(checkNamespace).
 		Get(context.TODO(), operatorName, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
