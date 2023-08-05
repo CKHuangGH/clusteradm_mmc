@@ -476,9 +476,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 
 func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.Interface, apiExtensionsClient apiextensionsclient.Interface) error {
 
-	o.wait = true
-	o.mode = "Hosted"
-
 	available, err := checkIfRegistrationOperatorAvailable(o.ClusteradmFlags.KubectlFactory, o.values.MultiMgtName, o.values.MultiMgtName)
 	if err != nil {
 		return err
