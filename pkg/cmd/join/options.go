@@ -77,12 +77,12 @@ type Values struct {
 	//managed kubeconfig
 	ManagedKubeconfig string
 
-	Pvsawa string
-
 	//McKlusterletName
 	McKlusterletName string
 
 	Vccr string
+
+	Mcworksa string
 
 	//McNamespace
 	McNamespace string

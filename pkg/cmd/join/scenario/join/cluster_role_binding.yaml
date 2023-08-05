@@ -10,4 +10,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {{ .McKlusterletName }}
+  namespace: {{ .McNamespace }}
+- kind: ServiceAccount
+  name: {{ .Mcworksa}}
   namespace: {{ .McNamespace }} 
