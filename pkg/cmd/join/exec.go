@@ -502,12 +502,12 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(o.Streams.Out, "%s", "1")
+
 	availableVcluster, err := checkIfVclusterAvailable(o.ClusteradmFlags.KubectlFactory, o.values.MultiMgtName, "vcluster")
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(o.Streams.Out, "%s", "2")
+
 	files := []string{}
 	vclusterfile := []string{}
 	// If Deployment/klusterlet is not deployed, deploy it
@@ -537,14 +537,20 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 			return err
 		}
 	}
-	fmt.Fprintf(o.Streams.Out, "%s", "3")
+
 	if o.wait && !o.ClusteradmFlags.DryRun {
 		err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), o.values.MultiMgtName)
 		if err != nil {
 			return err
 		}
 	}
-	fmt.Fprintf(o.Streams.Out, "%s", "4")
+
+	if !available {
+		err = r.Apply(scenario.Files, o.values, "join/multi-mgt/operator.yaml")
+		if err != nil {
+			return err
+		}
+	}
 	///get vcluster secret and set the config
 	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
 	if err != nil {
@@ -597,13 +603,6 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 	err = r.Apply(scenario.Files, o.values, files...)
 	if err != nil {
 		return err
-	}
-
-	if !available {
-		err = r.Apply(scenario.Files, o.values, "join/multi-mgt/operator.yaml")
-		if err != nil {
-			return err
-		}
 	}
 
 	if o.wait && !o.ClusteradmFlags.DryRun {
