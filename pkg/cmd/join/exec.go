@@ -519,7 +519,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		}
 	}
 
-	if !o.ClusteradmFlags.DryRun {
+	if o.wait && !o.ClusteradmFlags.DryRun {
 		err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), o.values.MultiMgtName)
 		if err != nil {
 			return err
@@ -590,7 +590,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		}
 	}
 
-	if !o.ClusteradmFlags.DryRun {
+	if o.wait && !o.ClusteradmFlags.DryRun {
 		if err := wait.WaitUntilCRDReady(apiExtensionsClient, "klusterlets.operator.open-cluster-management.io", o.wait); err != nil {
 			return err
 		}
