@@ -185,6 +185,9 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 			Name:                klusterletName,
 			KlusterletNamespace: klusterletNamespace,
 		}
+		if o.mode == InstallModeMultiMgt {
+			o.values.Klusterlet.Mode = "Hosted"
+		}
 		o.values.ManagedKubeconfig = o.managedKubeconfigFile
 		o.values.RegistrationFeatures = genericclioptionsclusteradm.ConvertToFeatureGateAPI(genericclioptionsclusteradm.SpokeMutableFeatureGate, ocmfeature.DefaultSpokeRegistrationFeatureGates)
 		o.values.WorkFeatures = genericclioptionsclusteradm.ConvertToFeatureGateAPI(genericclioptionsclusteradm.SpokeMutableFeatureGate, ocmfeature.DefaultSpokeWorkFeatureGates)
@@ -307,7 +310,7 @@ func RemovePortFromURL(rawURL string) string {
 	return cleanedURL
 }
 
-func (o *Options) run(cmd *cobra.Command, args []string) error {
+func (o *Options) run() error {
 	kubeClient, apiExtensionsClient, _, err := helpers.GetClients(o.ClusteradmFlags.KubectlFactory)
 	if err != nil {
 		return err
