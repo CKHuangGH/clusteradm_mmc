@@ -111,9 +111,6 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	if len(o.registry) == 0 {
 		return fmt.Errorf("the OCM image registry should not be empty, like quay.io/open-cluster-management")
 	}
-	if len(o.registry) == 0 {
-		return fmt.Errorf("the OCM image registry should not be empty, like quay.io/open-cluster-management")
-	}
 
 	if len(o.mode) == 0 {
 		return fmt.Errorf("the mode should not be empty, like default")
@@ -141,6 +138,11 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	MultiMgtName := "mgt-" + rfc1035Domain + "-klusterlet"
 	vclustercr := "vccr-" + rfc1035Domain
 	agentNamespace := AgentNamespacePrefix + "agent"
+	ModeForMM := o.mode
+
+	if o.mode == InstallModeMultiMgt {
+		ModeForMM = "Hosted"
+	}
 
 	o.values = Values{
 		ClusterName: o.clusterName,
@@ -153,6 +155,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		MultiMgtName: MultiMgtName,
 		ApiAddress:   ipAddress,
 		Vclustercr:   vclustercr,
+		ModeForMM:    ModeForMM,
 	}
 
 	if o.singleton { // deploy singleton agent
@@ -184,9 +187,6 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 			Mode:                o.mode,
 			Name:                klusterletName,
 			KlusterletNamespace: klusterletNamespace,
-		}
-		if o.mode == InstallModeMultiMgt {
-			o.values.Klusterlet.Mode = "Hosted"
 		}
 		o.values.ManagedKubeconfig = o.managedKubeconfigFile
 		o.values.RegistrationFeatures = genericclioptionsclusteradm.ConvertToFeatureGateAPI(genericclioptionsclusteradm.SpokeMutableFeatureGate, ocmfeature.DefaultSpokeRegistrationFeatureGates)
