@@ -292,13 +292,13 @@ func (o *Options) validate() error {
 	}
 
 	// get ManagedKubeconfig from given file
-	if o.mode == InstallModeHosted {
-		managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
-		if err != nil {
-			return err
-		}
-		o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
-	}
+	// if o.mode == InstallModeHosted {
+	// 	managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
+	// }
 
 	return nil
 }
@@ -602,6 +602,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
 	fmt.Fprintf(o.Streams.Out, "%s\n\n", o.values.ManagedKubeconfig)
+
 	err = r.Apply(scenario.Files, o.values, files...)
 	if err != nil {
 		return err
