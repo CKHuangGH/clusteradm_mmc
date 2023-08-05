@@ -554,6 +554,8 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 
 	fullurl := withHttp + ":" + nodePortStr
 
+	fmt.Fprintf(o.Streams.Out, "%s\n\n", fullurl)
+
 	kubeconfigSecret, err := kubeClient.CoreV1().Secrets(o.values.MultiMgtName).Get(context.Background(), "vc-vcluster", metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -575,6 +577,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 	}
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
+	fmt.Fprintf(o.Streams.Out, "%s\n\n", o.values.ManagedKubeconfig)
 
 	err = r.Apply(scenario.Files, o.values, files...)
 	if err != nil {
