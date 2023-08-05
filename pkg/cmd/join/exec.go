@@ -315,26 +315,26 @@ func (o *Options) run() error {
 
 	r := reader.NewResourceReader(o.builder, o.ClusteradmFlags.DryRun, o.Streams)
 
-	if o.mode != InstallModeMultiMgt {
-		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), o.values.AgentNamespace, metav1.GetOptions{})
-		if err != nil {
-			if errors.IsNotFound(err) {
-				_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: o.values.AgentNamespace,
-						Annotations: map[string]string{
-							"workload.openshift.io/allowed": "management",
-						},
-					},
-				}, metav1.CreateOptions{})
-				if err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
-		}
-	}
+	// if o.mode != InstallModeMultiMgt {
+	// 	_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), o.values.AgentNamespace, metav1.GetOptions{})
+	// 	if err != nil {
+	// 		if errors.IsNotFound(err) {
+	// 			_, err = kubeClient.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
+	// 				ObjectMeta: metav1.ObjectMeta{
+	// 					Name: o.values.AgentNamespace,
+	// 					Annotations: map[string]string{
+	// 						"workload.openshift.io/allowed": "management",
+	// 					},
+	// 				},
+	// 			}, metav1.CreateOptions{})
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 		} else {
+	// 			return err
+	// 		}
+	// 	}
+	// }
 	if o.singleton {
 		err = o.applySingletonAgent(r, kubeClient)
 		if err != nil {
