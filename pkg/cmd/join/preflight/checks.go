@@ -71,7 +71,7 @@ func (c DeployModeCheck) Check() (warningList []string, errorList []error) {
 		if c.ManagedKubeconfigFile != "" {
 			return nil, []error{errors.New("--managed-cluster-kubeconfig should not be set in default deploy mode")}
 		}
-	} else { // c.Mode == InstallModeHosted
+	} else if c.Mode == InstallModeHosted {
 		if c.ManagedKubeconfigFile == "" {
 			return nil, []error{errors.New("--managed-cluster-kubeconfig should be set in hosted deploy mode")}
 		}
