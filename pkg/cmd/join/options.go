@@ -76,7 +76,6 @@ type Values struct {
 	BundleVersion BundleVersion
 	// managed kubeconfig
 	ManagedKubeconfig string
-	ModeForMM         string
 	//McName
 	MultiMgtName string
 

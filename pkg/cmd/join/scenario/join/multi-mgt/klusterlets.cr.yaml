@@ -5,7 +5,7 @@ metadata:
   name: {{ .MultiMgtName }}
 spec:
   deployOption:
-    mode: {{ .ModeForMM }}
+    mode: {{ .Klusterlet.Mode }}
   registrationImagePullSpec: {{ .Registry }}/registration:{{ .BundleVersion.RegistrationImageVersion }}
   workImagePullSpec: {{ .Registry }}/work:{{ .BundleVersion.RegistrationImageVersion }}  
   clusterName: {{ .ClusterName }}
