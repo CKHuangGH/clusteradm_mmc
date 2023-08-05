@@ -501,7 +501,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 			"join/multi-mgt/vcluster_kubeconfig.yaml",
 		)
 	}
-	if availableVcluster {
+	if !availableVcluster {
 		vclusterfile = append(files,
 			"join/multi-mgt/namespace.yaml",
 			"join/multi-mgt/vcluster/all-in-one.yaml",
