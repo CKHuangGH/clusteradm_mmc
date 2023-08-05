@@ -180,7 +180,6 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 			// update AgentNamespace
 			o.values.AgentNamespace = agentNamespace
 		}
-
 		o.values.Klusterlet = Klusterlet{
 			Mode:                o.mode,
 			Name:                klusterletName,
@@ -477,8 +476,8 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 
 func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.Interface, apiExtensionsClient apiextensionsclient.Interface) error {
 
-	o.values.Klusterlet.Mode = "Hosted"
 	o.wait = true
+	o.mode = "Hosted"
 
 	available, err := checkIfRegistrationOperatorAvailable(o.ClusteradmFlags.KubectlFactory, o.values.MultiMgtName, o.values.MultiMgtName)
 	if err != nil {
@@ -502,7 +501,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 			"join/multi-mgt/vcluster_kubeconfig.yaml",
 		)
 	}
-	if !availableVcluster {
+	if availableVcluster {
 		vclusterfile = append(files,
 			"join/multi-mgt/namespace.yaml",
 			"join/multi-mgt/vcluster/all-in-one.yaml",
