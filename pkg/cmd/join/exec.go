@@ -186,6 +186,8 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 			o.values.Klusterlet.Mode = "Hosted"
 			o.values.Klusterlet.Name = MultiMgtName
 			o.values.Klusterlet.KlusterletNamespace = MultiMgtName
+			o.values.AgentNamespace = MultiMgtName
+
 		}
 		o.values.ManagedKubeconfig = o.managedKubeconfigFile
 		o.values.RegistrationFeatures = genericclioptionsclusteradm.ConvertToFeatureGateAPI(genericclioptionsclusteradm.SpokeMutableFeatureGate, ocmfeature.DefaultSpokeRegistrationFeatureGates)
