@@ -582,7 +582,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 	}
 
 	if !available {
-		err = r.Apply(scenario.Files, o.values, "join/operator.yaml")
+		err = r.Apply(scenario.Files, o.values, "join/multi-mgt/operator.yaml")
 		if err != nil {
 			return err
 		}
@@ -594,7 +594,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		}
 	}
 
-	err = r.Apply(scenario.Files, o.values, "join/klusterlets.cr.yaml")
+	err = r.Apply(scenario.Files, o.values, "join/multi-mgt/klusterlets.cr.yaml")
 	if err != nil {
 		return err
 	}
