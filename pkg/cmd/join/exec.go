@@ -416,6 +416,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		klusterletfiles = append(klusterletfiles,
 			"join/klusterlets.crd.yaml",
 			"join/service_account.yaml",
+			"join/service_account_work_agent.yaml",
 			"join/cluster_role.yaml",
 			"join/cluster_role_binding.yaml",
 			"join/vcluster_kubeconfig.yaml",
@@ -490,7 +491,7 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 	}
 
 	// 修改 server 欄位的值
-	clusterName := "my-vcluster" // 假設要修改的是名為 "cluster-1" 的 cluster
+	clusterName := "vcluster" // 假設要修改的是名為 "cluster-1" 的 cluster
 	tempconfig.Clusters[clusterName].Server = fullurl
 
 	// 將更新後的 Config 物件轉換回 kubeconfig 的格式
