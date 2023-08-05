@@ -184,6 +184,8 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		}
 		if o.mode == InstallModeMultiMgt {
 			o.values.Klusterlet.Mode = "Hosted"
+			o.values.Klusterlet.Name = MultiMgtName
+			o.values.Klusterlet.KlusterletNamespace = MultiMgtName
 		}
 		o.values.ManagedKubeconfig = o.managedKubeconfigFile
 		o.values.RegistrationFeatures = genericclioptionsclusteradm.ConvertToFeatureGateAPI(genericclioptionsclusteradm.SpokeMutableFeatureGate, ocmfeature.DefaultSpokeRegistrationFeatureGates)
@@ -509,12 +511,11 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		"join/multi-mgt/bootstrap_hub_kubeconfig.yaml",
 	)
 
-	if !availableVcluster {
-		err = r.Apply(scenario.Files, o.values, vclusterfile...)
-		if err != nil {
-			return err
-		}
+	err = r.Apply(scenario.Files, o.values, vclusterfile...)
+	if err != nil {
+		return err
 	}
+
 	fmt.Fprintf(o.Streams.Out, "%s", "3")
 	if o.wait && !o.ClusteradmFlags.DryRun {
 		err = waitUntilVclusterConditionIsTrue(o.ClusteradmFlags.KubectlFactory, int64(o.ClusteradmFlags.Timeout), o.values.MultiMgtName)
