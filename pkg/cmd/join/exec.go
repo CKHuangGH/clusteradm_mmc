@@ -32,7 +32,6 @@ import (
 	"open-cluster-management.io/clusteradm/pkg/cmd/join/scenario"
 	genericclioptionsclusteradm "open-cluster-management.io/clusteradm/pkg/genericclioptions"
 	"open-cluster-management.io/clusteradm/pkg/helpers"
-	preflightinterface "open-cluster-management.io/clusteradm/pkg/helpers/preflight"
 	"open-cluster-management.io/clusteradm/pkg/helpers/printer"
 	"open-cluster-management.io/clusteradm/pkg/helpers/reader"
 	"open-cluster-management.io/clusteradm/pkg/helpers/version"
@@ -269,22 +268,22 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 
 func (o *Options) validate() error {
 	// preflight check
-	if err := preflightinterface.RunChecks(
-		[]preflightinterface.Checker{
-			preflight.HubKubeconfigCheck{
-				Config: o.HubConfig,
-			},
-			preflight.DeployModeCheck{
-				Mode:                  o.mode,
-				InternalEndpoint:      o.forceHubInClusterEndpointLookup,
-				ManagedKubeconfigFile: o.managedKubeconfigFile,
-			},
-			preflight.ClusterNameCheck{
-				ClusterName: o.values.ClusterName,
-			},
-		}, os.Stderr); err != nil {
-		return err
-	}
+	// if err := preflightinterface.RunChecks(
+	// 	[]preflightinterface.Checker{
+	// 		preflight.HubKubeconfigCheck{
+	// 			Config: o.HubConfig,
+	// 		},
+	// 		preflight.DeployModeCheck{
+	// 			Mode:                  o.mode,
+	// 			InternalEndpoint:      o.forceHubInClusterEndpointLookup,
+	// 			ManagedKubeconfigFile: o.managedKubeconfigFile,
+	// 		},
+	// 		preflight.ClusterNameCheck{
+	// 			ClusterName: o.values.ClusterName,
+	// 		},
+	// 	}, os.Stderr); err != nil {
+	// 	return err
+	// }
 
 	err := o.setKubeconfig()
 	if err != nil {
@@ -601,6 +600,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 	}
 
 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(updatedKubeconfig)
+
 	fmt.Fprintf(o.Streams.Out, "%s\n\n", o.values.ManagedKubeconfig)
 
 	err = r.Apply(scenario.Files, o.values, files...)
