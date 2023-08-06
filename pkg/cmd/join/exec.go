@@ -291,13 +291,13 @@ func (o *Options) validate() error {
 	}
 
 	// get ManagedKubeconfig from given file
-	// if o.mode == InstallModeHosted {
-	// 	managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
-	// }
+	if o.mode == InstallModeHosted {
+		managedConfig, err := os.ReadFile(o.managedKubeconfigFile)
+		if err != nil {
+			return err
+		}
+		o.values.ManagedKubeconfig = base64.StdEncoding.EncodeToString(managedConfig)
+	}
 
 	return nil
 }
@@ -522,7 +522,7 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		)
 	}
 	if !availableVcluster {
-		vclusterfile = append(files,
+		vclusterfile = append(vclusterfile,
 			"join/multi-mgt/namespace.yaml",
 			"join/multi-mgt/vcluster/all-in-one.yaml",
 		)
