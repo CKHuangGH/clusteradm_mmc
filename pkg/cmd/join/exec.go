@@ -32,6 +32,7 @@ import (
 	"open-cluster-management.io/clusteradm/pkg/cmd/join/scenario"
 	genericclioptionsclusteradm "open-cluster-management.io/clusteradm/pkg/genericclioptions"
 	"open-cluster-management.io/clusteradm/pkg/helpers"
+	preflightinterface "open-cluster-management.io/clusteradm/pkg/helpers/preflight"
 	"open-cluster-management.io/clusteradm/pkg/helpers/printer"
 	"open-cluster-management.io/clusteradm/pkg/helpers/reader"
 	"open-cluster-management.io/clusteradm/pkg/helpers/version"
