@@ -138,7 +138,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	MultiMgtName := "mgt-" + rfc1035Domain + "-klusterlet"
 	vclustercr := "vccr-" + rfc1035Domain
 	agentNamespace := AgentNamespacePrefix + "agent"
-
+	ClusterrolePatch := MultiMgtName + "-work-sa"
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
@@ -147,9 +147,10 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		Registry:       o.registry,
 		AgentNamespace: agentNamespace,
 		//multi-mgt
-		MultiMgtName: MultiMgtName,
-		ApiAddress:   ipAddress,
-		Vclustercr:   vclustercr,
+		MultiMgtName:     MultiMgtName,
+		ApiAddress:       ipAddress,
+		Vclustercr:       vclustercr,
+		ClusterrolePatch: ClusterrolePatch,
 	}
 
 	if o.singleton { // deploy singleton agent
@@ -437,9 +438,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 			"join/service_account.yaml",
 			"join/cluster_role.yaml",
 			"join/cluster_role_binding.yaml",
-			"join/service_account_test.yaml",
-			"join/cluster_role_test.yaml",
-			"join/cluster_role_binding_test.yaml",
 		)
 	}
 	files = append(files,
@@ -522,6 +520,9 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 			"join/multi-mgt/service_account.yaml",
 			"join/multi-mgt/cluster_role.yaml",
 			"join/multi-mgt/cluster_role_binding.yaml",
+			"join/multi-mgt/service_account_patch.yaml",
+			"join/multi-mgt/cluster_role_patch.yaml",
+			"join/multi-mgt/cluster_role_binding_patch.yaml",
 			"join/multi-mgt/external_managed_kubeconfig.yaml",
 		)
 	}

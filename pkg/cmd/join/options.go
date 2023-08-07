@@ -81,6 +81,8 @@ type Values struct {
 
 	ApiAddress string
 
+	ClusterrolePatch string
+
 	Vclustercr string
 
 	// Features is the slice of feature for registration

@@ -1,0 +1,14 @@
+# Copyright Contributors to the Open Cluster Management project
+# Copied from: https://github.com/open-cluster-management-io/ocm/blob/main/deploy/klusterlet/config/rbac/cluster_role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .ClusterrolePatch }}
+rules:
+# Allow the registration-operator to create workload
+- apiGroups: [""]
+  resources: ["persistentvolumes"]
+  verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
