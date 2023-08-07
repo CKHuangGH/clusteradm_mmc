@@ -520,9 +520,6 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 			"join/multi-mgt/service_account.yaml",
 			"join/multi-mgt/cluster_role.yaml",
 			"join/multi-mgt/cluster_role_binding.yaml",
-			"join/multi-mgt/service_account_patch.yaml",
-			"join/multi-mgt/cluster_role_patch.yaml",
-			"join/multi-mgt/cluster_role_binding_patch.yaml",
 			"join/multi-mgt/external_managed_kubeconfig.yaml",
 		)
 	}
