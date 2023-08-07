@@ -11,3 +11,6 @@ subjects:
 - kind: ServiceAccount
   name: klusterlet
   namespace: open-cluster-management 
+- kind: ServiceAccount
+  name: klusterlet-work-sa
+  namespace: open-cluster-management-agent
