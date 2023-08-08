@@ -262,11 +262,14 @@ data:
     rules:
     # Allow the registration-operator to create workload
     - apiGroups: [""]
-      resources: ["persistentvolumes","endpointslices"]
+      resources: ["persistentvolumes"]
       verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
     - apiGroups: ["storage.k8s.io"]
       resources: ["storageclasses"]
       verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
+    - apiGroups: ["discovery.k8s.io"]
+      resources: ["endpointslices"]
+      verbs: ["create", "get", "list", "update", "watch", "patch", "delete"]
     ---
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
