@@ -301,6 +301,9 @@ rules:
   - apiGroups: ["storage.k8s.io"]
     resources: ["storageclasses"]
     verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["create", "get", "list", "update", "watch", "patch", "delete"]
 ---
 # Source: vcluster/templates/rbac/clusterrolebinding.yaml
 kind: ClusterRoleBinding
