@@ -531,7 +531,6 @@ spec:
           - --sync=ingresses
           - --sync=persistentvolumes
           - --sync=storageclasses
-          - --sync=endpointslices
           - --tls-san={{ .ApiAddress }}
         livenessProbe:
           httpGet:
