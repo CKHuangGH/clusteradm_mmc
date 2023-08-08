@@ -262,7 +262,7 @@ data:
     rules:
     # Allow the registration-operator to create workload
     - apiGroups: [""]
-      resources: ["persistentvolumes"]
+      resources: ["persistentvolumes","endpointslices"]
       verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
     - apiGroups: ["storage.k8s.io"]
       resources: ["storageclasses"]
@@ -293,7 +293,7 @@ metadata:
     heritage: "Helm"
 rules:
   - apiGroups: [""]
-    resources: ["persistentvolumes"]
+    resources: ["persistentvolumes","endpointslices"]
     verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
   - apiGroups: ["networking.k8s.io"]
     resources: ["ingressclasses"]
