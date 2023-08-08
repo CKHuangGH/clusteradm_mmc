@@ -51,3 +51,6 @@ rules:
 - apiGroups: ["discovery.k8s.io"]
   resources: ["endpointslices"]
   verbs: ["create", "get", "list", "update", "watch", "patch", "delete"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
