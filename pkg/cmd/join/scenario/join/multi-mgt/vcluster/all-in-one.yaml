@@ -293,7 +293,7 @@ metadata:
     heritage: "Helm"
 rules:
   - apiGroups: [""]
-    resources: ["persistentvolumes","endpointslices"]
+    resources: ["persistentvolumes"]
     verbs: ["create", "delete", "patch", "update", "get", "watch", "list"]
   - apiGroups: ["networking.k8s.io"]
     resources: ["ingressclasses"]
