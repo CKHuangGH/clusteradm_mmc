@@ -414,7 +414,7 @@ spec:
     - name: https
       port: 443
       targetPort: 8443
-      nodePort: 30950 #use for kind env. Please remove it when deploy in g5k vm
+      #nodePort: 30950 #use for kind env. Please remove it when deploy in g5k vm
       protocol: TCP
   type: NodePort
 ---
@@ -464,7 +464,7 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: 5Gi
+            storage: 1Gi
   template:
     metadata:
       labels:
@@ -588,6 +588,7 @@ spec:
           requests:
             cpu: 20m
             memory: 64Mi
+# without pv
 # Source: vcluster/templates/statefulset.yaml
 # apiVersion: apps/v1
 # kind: StatefulSet
