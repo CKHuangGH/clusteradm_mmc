@@ -81,6 +81,8 @@ type Values struct {
 
 	ApiAddress string
 
+	VclusterPVName string
+
 	ClusterrolePatch string
 
 	Vclustercr string

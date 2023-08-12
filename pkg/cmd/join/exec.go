@@ -139,6 +139,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 	vclustercr := "vccr-" + rfc1035Domain
 	agentNamespace := AgentNamespacePrefix + "agent"
 	ClusterrolePatch := MultiMgtName + "-work-sa"
+	VclusterPVName := MultiMgtName + "-pv"
 	o.values = Values{
 		ClusterName: o.clusterName,
 		Hub: Hub{
@@ -151,6 +152,7 @@ func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
 		ApiAddress:       ipAddress,
 		Vclustercr:       vclustercr,
 		ClusterrolePatch: ClusterrolePatch,
+		VclusterPVName:   VclusterPVName,
 	}
 
 	if o.singleton { // deploy singleton agent

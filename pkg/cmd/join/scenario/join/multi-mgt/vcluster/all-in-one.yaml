@@ -375,6 +375,19 @@ roleRef:
   name: vcluster
   apiGroup: rbac.authorization.k8s.io
 ---
+# Source: pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .VclusterPVName }}
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data
+---
 # Source: vcluster/templates/service.yaml
 apiVersion: v1
 kind: Service
