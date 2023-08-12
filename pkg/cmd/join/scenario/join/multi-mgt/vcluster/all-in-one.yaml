@@ -440,7 +440,6 @@ spec:
     app: vcluster
     release: "vcluster"
 ---
-# Source: vcluster/templates/statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -458,6 +457,14 @@ spec:
     matchLabels:
       app: vcluster
       release: vcluster
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 5Gi
   template:
     metadata:
       labels:
@@ -476,8 +483,10 @@ spec:
         - name: coredns
           configMap:
             name: vcluster-coredns
-        - name: data
-          emptyDir: {}
+        - name: custom-config-volume
+          configMap:
+            name: coredns-custom
+            optional: true
       containers:
       - image: rancher/k3s:v1.27.3-k3s1
         name: vcluster
@@ -567,9 +576,11 @@ spec:
           - name: coredns
             mountPath: /manifests/coredns
             readOnly: true
+          - name: custom-config-volume
+            mountPath: /etc/coredns/custom
+            readOnly: true
           - mountPath: /data
             name: data
-            readOnly: true
         resources:
           limits:
             cpu: 1000m
@@ -577,3 +588,140 @@ spec:
           requests:
             cpu: 20m
             memory: 64Mi
+# Source: vcluster/templates/statefulset.yaml
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: vcluster
+#   namespace: {{ .MultiMgtName }}
+#   labels:
+#     app: vcluster
+#     chart: "vcluster-0.15.5"
+#     release: "vcluster"
+#     heritage: "Helm"
+# spec:
+#   serviceName: vcluster-headless
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: vcluster
+#       release: vcluster
+#   template:
+#     metadata:
+#       labels:
+#         app: vcluster
+#         release: vcluster
+#     spec:
+#       terminationGracePeriodSeconds: 10
+#       nodeSelector:
+#         {}
+#       tolerations:
+#         []
+#       serviceAccountName: vc-vcluster
+#       volumes:
+#         - name: config
+#           emptyDir: {}
+#         - name: coredns
+#           configMap:
+#             name: vcluster-coredns
+#         - name: data
+#           emptyDir: {}
+#       containers:
+#       - image: rancher/k3s:v1.27.3-k3s1
+#         name: vcluster
+#         # k3s has a problem running as pid 1 and disabled agents on cgroupv2
+#         # nodes as it will try to evacuate the cgroups there. Starting k3s
+#         # through a shell makes it non pid 1 and prevents this from happening
+#         command:
+#           - /bin/sh
+#         args:
+#           - -c
+#           - /bin/k3s
+#             server
+#             --write-kubeconfig=/data/k3s-config/kube-config.yaml
+#             --data-dir=/data
+#             --disable=traefik,servicelb,metrics-server,local-storage,coredns
+#             --disable-network-policy
+#             --disable-agent
+#             --disable-cloud-controller
+#             --flannel-backend=none
+#             --disable-scheduler
+#             --kube-controller-manager-arg=controllers=*,-nodeipam,-nodelifecycle,-persistentvolume-binder,-attachdetach,-persistentvolume-expander,-cloud-node-lifecycle,-ttl
+#             --kube-apiserver-arg=endpoint-reconciler-type=none
+#             --service-cidr=$(SERVICE_CIDR)
+#             && true
+#         env:
+#           - name: SERVICE_CIDR
+#             valueFrom:
+#               configMapKeyRef:
+#                 name: "vc-cidr-vcluster"
+#                 key: cidr
+#         securityContext:
+#           allowPrivilegeEscalation: false
+#         volumeMounts:
+#           - name: config
+#             mountPath: /etc/rancher
+#           - mountPath: /data
+#             name: data
+#         resources:
+#           limits:
+#             memory: 2Gi
+#           requests:
+#             cpu: 200m
+#             memory: 256Mi
+#       - name: syncer
+#         image: "ghcr.io/loft-sh/vcluster:0.15.5"
+#         args:
+#           - --name=vcluster
+#           - --service-account=vc-workload-vcluster
+#           - --kube-config-context-name=my-vcluster
+#           - --leader-elect=false
+#           - --sync=ingresses
+#           - --sync=persistentvolumes
+#           - --sync=storageclasses
+#           - --tls-san={{ .ApiAddress }}
+#         livenessProbe:
+#           httpGet:
+#             path: /healthz
+#             port: 8443
+#             scheme: HTTPS
+#           failureThreshold: 60
+#           initialDelaySeconds: 60
+#           periodSeconds: 2
+#         readinessProbe:
+#           httpGet:
+#             path: /readyz
+#             port: 8443
+#             scheme: HTTPS
+#           failureThreshold: 60
+#           periodSeconds: 2
+#         securityContext:
+#           allowPrivilegeEscalation: false
+#         env:
+#           - name: POD_IP
+#             valueFrom:
+#               fieldRef:
+#                 fieldPath: status.podIP
+#           - name: VCLUSTER_NODE_NAME
+#             valueFrom:
+#               fieldRef:
+#                 fieldPath: spec.nodeName
+#           - name: CONFIG
+#             value: |-
+#               ---
+#           - name: VCLUSTER_TELEMETRY_CONFIG
+#             value: "{\"disabled\":\"false\",\"instanceCreator\":\"helm\",\"instanceCreatorUID\":\"\"}"
+#         volumeMounts:
+#           - name: coredns
+#             mountPath: /manifests/coredns
+#             readOnly: true
+#           - mountPath: /data
+#             name: data
+#             readOnly: true
+#         resources:
+#           limits:
+#             cpu: 1000m
+#             memory: 512Mi
+#           requests:
+#             cpu: 20m
+#             memory: 64Mi
