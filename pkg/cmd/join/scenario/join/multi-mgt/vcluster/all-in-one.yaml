@@ -487,9 +487,11 @@ spec:
     spec:
       terminationGracePeriodSeconds: 10
       nodeSelector:
-        {}
+        node-role.kubernetes.io/master: ""
       tolerations:
-        []
+      - key: "node-role.kubernetes.io/master"
+        operator: "Equal"
+        effect: "NoSchedule"
       serviceAccountName: vc-vcluster
       volumes:
         - name: config
@@ -597,8 +599,8 @@ spec:
             name: data
         resources:
           limits:
-            cpu: 1000m
-            memory: 512Mi
+            cpu: 4000m #1000m
+            memory: 16384Mi # 512Mi
           requests:
             cpu: 20m
             memory: 64Mi
