@@ -598,9 +598,9 @@ spec:
           - mountPath: /data
             name: data
         resources:
-          limits:
-            cpu: 4000m #1000m
-            memory: 16384Mi # 512Mi
+          #limits:
+            #cpu: 4000m #1000m
+            #memory: 16384Mi # 512Mi
           requests:
             cpu: 20m
             memory: 64Mi
