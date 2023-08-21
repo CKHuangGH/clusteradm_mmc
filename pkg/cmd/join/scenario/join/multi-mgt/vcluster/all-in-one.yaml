@@ -486,8 +486,8 @@ spec:
         release: vcluster
     spec:
       terminationGracePeriodSeconds: 10
-      nodeSelector:
-        node-role.kubernetes.io/master: ""
+      # nodeSelector:
+      #   node-role.kubernetes.io/master: ""
       tolerations:
       - key: "node-role.kubernetes.io/master"
         operator: "Equal"
