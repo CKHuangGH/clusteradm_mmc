@@ -486,10 +486,10 @@ spec:
         release: vcluster
     spec:
       terminationGracePeriodSeconds: 10
-      # nodeSelector:
-      #   node-role.kubernetes.io/master: ""
+      nodeSelector:
+        node-role.kubernetes.io/control-plane=""
       tolerations:
-      - key: "node-role.kubernetes.io/master"
+      - key: "node-role.kubernetes.io/control-plane="
         operator: "Equal"
         effect: "NoSchedule"
       serviceAccountName: vc-vcluster
