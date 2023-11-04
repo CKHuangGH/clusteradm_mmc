@@ -541,10 +541,11 @@ spec:
           - mountPath: /data
             name: data
         resources:
-          # limits:
-          #   memory: 2Gi
-          requests:
+          limits:
             cpu: 200m
+            memory: 768Mi
+          requests:
+            cpu: 100m
             memory: 256Mi
       - name: syncer
         image: "ghcr.io/loft-sh/vcluster:0.15.5"
