@@ -213,7 +213,7 @@ func GetBootstrapTokenFromSA(ctx context.Context, kubeClient kubernetes.Interfac
 		CreateToken(ctx, config.BootstrapSAName, &authv1.TokenRequest{
 			Spec: authv1.TokenRequestSpec{
 				// token expired in 1 hour
-				ExpirationSeconds: pointer.Int64(10800),
+				ExpirationSeconds: pointer.Int64(43200),
 			},
 		}, metav1.CreateOptions{})
 	if err != nil {
