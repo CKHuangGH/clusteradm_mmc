@@ -550,6 +550,9 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 		}
 	}
 
+	duration := 60
+	time.Sleep(time.Duration(duration) * time.Second)
+
 	if !available {
 		err = r.Apply(scenario.Files, o.values, "join/multi-mgt/operator.yaml")
 		if err != nil {
