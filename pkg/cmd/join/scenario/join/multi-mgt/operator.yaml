@@ -18,27 +18,27 @@ spec:
       labels:
         app: klusterlet
     spec:
-      # affinity:
-      #   podAntiAffinity:
-      #     preferredDuringSchedulingIgnoredDuringExecution:
-      #     - weight: 70
-      #       podAffinityTerm:
-      #         topologyKey: failure-domain.beta.kubernetes.io/zone
-      #         labelSelector:
-      #           matchExpressions:
-      #           - key: app
-      #             operator: In
-      #             values:
-      #             - klusterlet
-      #     - weight: 30
-      #       podAffinityTerm:
-      #         topologyKey: kubernetes.io/hostname
-      #         labelSelector:
-      #           matchExpressions:
-      #           - key: app
-      #             operator: In
-      #             values:
-      #             - klusterlet
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 70
+            podAffinityTerm:
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - klusterlet
+          - weight: 30
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - klusterlet
       serviceAccountName: {{ .MultiMgtName }}
       containers:
       - name: {{ .MultiMgtName }}
@@ -46,19 +46,19 @@ spec:
         args:
           - "/registration-operator"
           - "klusterlet"
-        # livenessProbe:
-        #   httpGet:
-        #     path: /healthz
-        #     scheme: HTTPS
-        #     port: 8443
-        #   initialDelaySeconds: 2
-        #   periodSeconds: 10
-        # readinessProbe:
-        #   httpGet:
-        #     path: /healthz
-        #     scheme: HTTPS
-        #     port: 8443
-        #   initialDelaySeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            scheme: HTTPS
+            port: 8443
+          initialDelaySeconds: 2
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            scheme: HTTPS
+            port: 8443
+          initialDelaySeconds: 2
         resources:
           requests:
             cpu: 100m
