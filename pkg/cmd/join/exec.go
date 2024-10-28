@@ -307,7 +307,6 @@ func (o *Options) validate() error {
 }
 
 func RemovePortFromURL(rawURL string) string {
-	// 使用正規表達式來匹配網址中的 port 號碼部分
 	re := regexp.MustCompile(`:\d+`)
 	cleanedURL := re.ReplaceAllString(rawURL, "")
 
@@ -432,7 +431,6 @@ func (o *Options) applyKlusterlet(r *reader.ResourceReader, kubeClient kubernete
 		return err
 	}
 	files := []string{}
-	// If Deployment/klusterlet is not deployed, deploy it
 	if !available {
 		files = append(files,
 			"join/klusterlets.crd.yaml",
@@ -559,7 +557,6 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 			return err
 		}
 	}
-	///get vcluster secret and set the config
 	restConfig, err := o.ClusteradmFlags.KubectlFactory.ToRESTConfig()
 	if err != nil {
 		return nil
@@ -597,7 +594,6 @@ func (o *Options) applyMultiMgt(r *reader.ResourceReader, kubeClient kubernetes.
 	if err != nil {
 		return err
 	}
-	///change server ip address
 	clusterName := "my-vcluster"
 	tempconfig.Clusters[clusterName].Server = fullurl
 
@@ -955,7 +951,6 @@ func (o *Options) createExternalBootstrapConfig() clientcmdapiv1.Config {
 				},
 			},
 		},
-		// Define auth based on the obtained client cert.
 		AuthInfos: []clientcmdapiv1.NamedAuthInfo{
 			{
 				Name: "bootstrap",
@@ -964,7 +959,6 @@ func (o *Options) createExternalBootstrapConfig() clientcmdapiv1.Config {
 				},
 			},
 		},
-		// Define a context that connects the auth info and cluster, and set it as the default
 		Contexts: []clientcmdapiv1.NamedContext{
 			{
 				Name: "bootstrap",
@@ -982,7 +976,6 @@ func (o *Options) createExternalBootstrapConfig() clientcmdapiv1.Config {
 func (o *Options) createClientcmdapiv1Config(externalClientUnSecure *kubernetes.Clientset,
 	bootstrapExternalConfigUnSecure clientcmdapiv1.Config) (*clientcmdapiv1.Config, error) {
 	var err error
-	// set hub in cluster endpoint
 	if o.forceHubInClusterEndpointLookup {
 		o.hubInClusterEndpoint, err = helpers.GetAPIServer(externalClientUnSecure)
 		if err != nil {
@@ -996,10 +989,8 @@ func (o *Options) createClientcmdapiv1Config(externalClientUnSecure *kubernetes.
 	bootstrapConfig.Clusters[0].Cluster.InsecureSkipTLSVerify = false
 	bootstrapConfig.Clusters[0].Cluster.Server = o.hubAPIServer
 	if o.HubCADate != nil {
-		// directly set ca-data if --ca-file is set
 		bootstrapConfig.Clusters[0].Cluster.CertificateAuthorityData = o.HubCADate
 	} else {
-		// get ca data from externalClientUnsecure, ca may empty(cluster-info exists with no ca data)
 		ca, err := helpers.GetCACert(externalClientUnSecure)
 		if err != nil {
 			return nil, err
@@ -1011,8 +1002,6 @@ func (o *Options) createClientcmdapiv1Config(externalClientUnSecure *kubernetes.
 }
 
 func (o *Options) setKubeconfig() error {
-	// replace apiserver if the flag is set, the apiserver value should not be set
-	// to in-cluster endpoint until preflight check is finished
 	if o.forceHubInClusterEndpointLookup {
 		o.HubConfig.Clusters[0].Cluster.Server = o.hubInClusterEndpoint
 	}
